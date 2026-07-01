@@ -14,6 +14,12 @@ export default function Produtos() {
   const [mostrarFormulario, setMostrarFormulario] =
     useState(false);
 
+  const [produtoEditando, setProdutoEditando] =
+    useState<Produto | null>(null);
+
+  const [pesquisa, setPesquisa] =
+    useState("");
+
   const [produtos, setProdutos] = useState<Produto[]>(
     carregarProdutos()
   );
@@ -22,13 +28,29 @@ export default function Produtos() {
     salvarProdutos(produtos);
   }, [produtos]);
 
-  function adicionarProduto(produto: Produto) {
-    setProdutos((anterior) => [
-      ...anterior,
-      produto,
-    ]);
+  function salvarProduto(produto: Produto) {
+    if (produtoEditando) {
+      const atualizados = produtos.map((p) =>
+        p.codigo === produtoEditando.codigo
+          ? produto
+          : p
+      );
+
+      setProdutos(atualizados);
+      setProdutoEditando(null);
+    } else {
+      setProdutos([
+        ...produtos,
+        produto,
+      ]);
+    }
 
     setMostrarFormulario(false);
+  }
+
+  function editarProduto(produto: Produto) {
+    setProdutoEditando(produto);
+    setMostrarFormulario(true);
   }
 
   function excluirProduto(produto: Produto) {
@@ -45,16 +67,43 @@ export default function Produtos() {
       ) || "[]"
     );
 
-    lixeiraAtual.push({
-      ...produto,
-      dataExclusao: new Date().toISOString(),
-    });
+    const itemLixeira = {
+      codigo: produto.codigo,
+      descricao: produto.descricao,
+      unidade: produto.unidade,
+      quantidade: produto.quantidade,
+      estoqueMinimo:
+        produto.estoqueMinimo,
+      precoCompra:
+        produto.precoCompra,
+      observacao:
+        produto.observacao || "",
+      dataExclusao:
+        new Date().toISOString(),
+    };
+
+    lixeiraAtual.push(itemLixeira);
 
     localStorage.setItem(
       "visual_esquadrias_lixeira",
       JSON.stringify(lixeiraAtual)
     );
   }
+
+  const produtosFiltrados =
+    produtos.filter((produto) => {
+      const texto =
+        pesquisa.toLowerCase();
+
+      return (
+        produto.codigo
+          .toLowerCase()
+          .includes(texto) ||
+        produto.descricao
+          .toLowerCase()
+          .includes(texto)
+      );
+    });
 
   return (
     <>
@@ -64,25 +113,45 @@ export default function Produtos() {
         </h1>
 
         <button
-          onClick={() => setMostrarFormulario(true)}
+          onClick={() => {
+            setProdutoEditando(null);
+            setMostrarFormulario(true);
+          }}
           className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg"
         >
           Novo Produto
         </button>
       </div>
 
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Pesquisar..."
+          value={pesquisa}
+          onChange={(e) =>
+            setPesquisa(e.target.value)
+          }
+          className="w-full bg-white border rounded-xl p-4"
+        />
+      </div>
+
       {mostrarFormulario && (
         <ProdutoForm
-          onSalvar={adicionarProduto}
-          onCancelar={() =>
-            setMostrarFormulario(false)
+          produtoInicial={
+            produtoEditando
           }
+          onSalvar={salvarProduto}
+          onCancelar={() => {
+            setMostrarFormulario(false);
+            setProdutoEditando(null);
+          }}
         />
       )}
 
       <ProdutoTable
-        produtos={produtos}
+        produtos={produtosFiltrados}
         onExcluir={excluirProduto}
+        onEditar={editarProduto}
       />
     </>
   );

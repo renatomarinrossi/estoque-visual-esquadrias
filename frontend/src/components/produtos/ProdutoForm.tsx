@@ -4,21 +4,25 @@ import type { Produto } from "../../types/produto";
 type Props = {
   onSalvar: (produto: Produto) => void;
   onCancelar: () => void;
+  produtoInicial?: Produto | null;
 };
 
 export default function ProdutoForm({
   onSalvar,
   onCancelar,
+  produtoInicial,
 }: Props) {
-  const [produto, setProduto] = useState<Produto>({
-    codigo: "",
-    descricao: "",
-    unidade: "UN",
-    quantidade: 0,
-    estoqueMinimo: 0,
-    precoCompra: 0,
-    observacao: "",
-  });
+  const [produto, setProduto] = useState<Produto>(
+    produtoInicial || {
+      codigo: "",
+      descricao: "",
+      unidade: "UN",
+      quantidade: 0,
+      estoqueMinimo: 0,
+      precoCompra: 0,
+      observacao: "",
+    }
+  );
 
   function salvar() {
     onSalvar(produto);
@@ -27,7 +31,7 @@ export default function ProdutoForm({
   return (
     <div className="bg-white rounded-xl shadow-md p-6 mb-6">
       <h2 className="text-xl font-semibold mb-6">
-        Cadastro de Produto
+        {produtoInicial ? "Editar Produto" : "Cadastro de Produto"}
       </h2>
 
       <div className="grid grid-cols-4 gap-4">
@@ -78,6 +82,7 @@ export default function ProdutoForm({
           type="number"
           placeholder="Quantidade"
           className="border rounded-lg p-2"
+          value={produto.quantidade}
           onChange={(e) =>
             setProduto({
               ...produto,
@@ -90,6 +95,7 @@ export default function ProdutoForm({
           type="number"
           placeholder="Estoque Mínimo"
           className="border rounded-lg p-2"
+          value={produto.estoqueMinimo}
           onChange={(e) =>
             setProduto({
               ...produto,
@@ -103,6 +109,7 @@ export default function ProdutoForm({
           step="0.01"
           placeholder="Preço Compra"
           className="border rounded-lg p-2"
+          value={produto.precoCompra}
           onChange={(e) =>
             setProduto({
               ...produto,
@@ -111,20 +118,10 @@ export default function ProdutoForm({
           }
         />
 
-        <input
-          placeholder="Observação"
-          className="border rounded-lg p-2 col-span-2"
-          onChange={(e) =>
-            setProduto({
-              ...produto,
-              observacao: e.target.value,
-            })
-          }
-        />
-
       </div>
 
       <div className="flex gap-3 mt-6">
+
         <button
           onClick={salvar}
           className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg"
@@ -138,6 +135,7 @@ export default function ProdutoForm({
         >
           Cancelar
         </button>
+
       </div>
     </div>
   );

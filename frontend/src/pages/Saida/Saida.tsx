@@ -1,30 +1,45 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Saida() {
+  const [produtos, setProdutos] = useState<any[]>([]);
   const [codigo, setCodigo] = useState("");
   const [quantidade, setQuantidade] = useState("");
 
-  function registrarSaida() {
-    const produtos = JSON.parse(
+  useEffect(() => {
+    const dados = JSON.parse(
       localStorage.getItem(
         "visual_esquadrias_produtos"
       ) || "[]"
     );
 
-    const index = produtos.findIndex(
-      (p: any) => p.codigo === codigo
+    setProdutos(dados);
+  }, []);
+
+  const produtoSelecionado =
+    produtos.find(
+      (p) => p.codigo === codigo
     );
 
+  function registrarSaida() {
+    const produtosAtualizados = [...produtos];
+
+    const index =
+      produtosAtualizados.findIndex(
+        (p) => p.codigo === codigo
+      );
+
     if (index === -1) {
-      alert("Produto não encontrado");
+      alert("Selecione um produto");
       return;
     }
 
     const estoqueAtual =
-      produtos[index].quantidade;
+      produtosAtualizados[index]
+        .quantidade;
 
     if (
-      estoqueAtual - Number(quantidade) <
+      estoqueAtual -
+        Number(quantidade) <
       0
     ) {
       alert(
@@ -34,14 +49,15 @@ export default function Saida() {
       return;
     }
 
-    produtos[index].quantidade -= Number(
-      quantidade
-    );
+    produtosAtualizados[index].quantidade -=
+      Number(quantidade);
 
     localStorage.setItem(
       "visual_esquadrias_produtos",
-      JSON.stringify(produtos)
+      JSON.stringify(produtosAtualizados)
     );
+
+    setProdutos(produtosAtualizados);
 
     alert("Saída registrada");
 
@@ -58,23 +74,43 @@ export default function Saida() {
       <div className="bg-white rounded-xl shadow-md p-6 max-w-xl">
 
         <div className="mb-4">
-
           <label className="block mb-2">
-            Código do Produto
+            Produto
           </label>
 
-          <input
+          <select
             value={codigo}
             onChange={(e) =>
               setCodigo(e.target.value)
             }
             className="w-full border rounded-lg p-2"
-          />
+          >
+            <option value="">
+              Selecione
+            </option>
 
+            {produtos.map((produto) => (
+              <option
+                key={produto.codigo}
+                value={produto.codigo}
+              >
+                {produto.codigo} - {produto.descricao}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className="mb-4">
+        {produtoSelecionado && (
+          <div className="mb-4 p-3 bg-slate-100 rounded">
+            Estoque Atual:
+            <strong>
+              {" "}
+              {produtoSelecionado.quantidade}
+            </strong>
+          </div>
+        )}
 
+        <div className="mb-4">
           <label className="block mb-2">
             Quantidade
           </label>
@@ -87,7 +123,6 @@ export default function Saida() {
             }
             className="w-full border rounded-lg p-2"
           />
-
         </div>
 
         <button
