@@ -30,93 +30,146 @@ export default function ProdutoForm({
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+
       <h2 className="text-xl font-semibold mb-6">
-        {produtoInicial ? "Editar Produto" : "Cadastro de Produto"}
+        {produtoInicial
+          ? "Editar Produto"
+          : "Cadastro de Produto"}
       </h2>
 
       <div className="grid grid-cols-4 gap-4">
 
-        <input
-          placeholder="Código"
-          className="border rounded-lg p-2"
-          value={produto.codigo}
-          onChange={(e) =>
-            setProduto({
-              ...produto,
-              codigo: e.target.value,
-            })
-          }
-        />
+        <div>
+          <label className="block mb-2">
+            Código
+          </label>
 
-        <input
-          placeholder="Descrição"
-          className="border rounded-lg p-2"
-          value={produto.descricao}
-          onChange={(e) =>
-            setProduto({
-              ...produto,
-              descricao: e.target.value,
-            })
-          }
-        />
+          <input
+            placeholder="Código"
+            className="border rounded-lg p-2 w-full"
+            value={produto.codigo}
+            onChange={(e) =>
+              setProduto({
+                ...produto,
+                codigo: e.target.value,
+              })
+            }
+          />
+        </div>
 
-        <select
-          className="border rounded-lg p-2"
-          value={produto.unidade}
-          onChange={(e) =>
-            setProduto({
-              ...produto,
-              unidade: e.target.value,
-            })
-          }
-        >
-          <option>UN</option>
-          <option>Barra</option>
-          <option>Kg</option>
-          <option>M²</option>
-          <option>M³</option>
-          <option>Caixa</option>
-        </select>
+        <div>
+          <label className="block mb-2">
+            Descrição
+          </label>
 
-        <input
-          type="number"
-          placeholder="Quantidade"
-          className="border rounded-lg p-2"
-          value={produto.quantidade}
-          onChange={(e) =>
-            setProduto({
-              ...produto,
-              quantidade: Number(e.target.value),
-            })
-          }
-        />
+          <input
+            placeholder="Descrição"
+            className="border rounded-lg p-2 w-full"
+            value={produto.descricao}
+            onChange={(e) =>
+              setProduto({
+                ...produto,
+                descricao: e.target.value,
+              })
+            }
+          />
+        </div>
 
-        <input
-          type="number"
-          placeholder="Estoque Mínimo"
-          className="border rounded-lg p-2"
-          value={produto.estoqueMinimo}
-          onChange={(e) =>
-            setProduto({
-              ...produto,
-              estoqueMinimo: Number(e.target.value),
-            })
-          }
-        />
+        <div>
+          <label className="block mb-2">
+            Unidade
+          </label>
 
-        <input
-          type="number"
-          step="0.01"
-          placeholder="Preço Compra"
-          className="border rounded-lg p-2"
-          value={produto.precoCompra}
-          onChange={(e) =>
-            setProduto({
-              ...produto,
-              precoCompra: Number(e.target.value),
-            })
-          }
-        />
+          <select
+            className="border rounded-lg p-2 w-full"
+            value={produto.unidade}
+            onChange={(e) =>
+              setProduto({
+                ...produto,
+                unidade: e.target.value,
+              })
+            }
+          >
+            <option>UN</option>
+            <option>Barra</option>
+            <option>Kg</option>
+            <option>M²</option>
+            <option>M³</option>
+            <option>Caixa</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block mb-2">
+            Quantidade
+          </label>
+
+          <input
+            type="number"
+            className="border rounded-lg p-2 w-full"
+            value={produto.quantidade}
+            onChange={(e) =>
+              setProduto({
+                ...produto,
+                quantidade: Number(e.target.value),
+              })
+            }
+          />
+        </div>
+
+        <div>
+          <label className="block mb-2">
+            Estoque Mínimo
+          </label>
+
+          <input
+            type="number"
+            className="border rounded-lg p-2 w-full"
+            value={produto.estoqueMinimo}
+            onChange={(e) =>
+              setProduto({
+                ...produto,
+                estoqueMinimo: Number(e.target.value),
+              })
+            }
+          />
+        </div>
+
+        <div>
+          <label className="block mb-2">
+            Preço de Compra
+          </label>
+
+          <input
+            type="number"
+            step="0.01"
+            className="border rounded-lg p-2 w-full"
+            value={produto.precoCompra}
+            onChange={(e) =>
+              setProduto({
+                ...produto,
+                precoCompra: Number(e.target.value),
+              })
+            }
+          />
+        </div>
+
+        <div className="col-span-2">
+          <label className="block mb-2">
+            Observação
+          </label>
+
+          <input
+            className="border rounded-lg p-2 w-full"
+            value={produto.observacao}
+            onChange={(e) =>
+              setProduto({
+                ...produto,
+                observacao: e.target.value,
+              })
+            }
+          />
+        </div>
 
       </div>
 
@@ -137,6 +190,7 @@ export default function ProdutoForm({
         </button>
 
       </div>
+
     </div>
   );
 }
