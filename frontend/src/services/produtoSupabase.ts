@@ -31,6 +31,8 @@ export async function inserirProduto(
         produto.precoCompra,
       observacao:
         produto.observacao,
+      fornecedor_id:
+        produto.fornecedorId || null,
       ultima_entrada:
         produto.ultimaEntrada || null,
     });
@@ -41,9 +43,39 @@ export async function inserirProduto(
   }
 }
 
+export async function atualizarProduto(
+  codigoOriginal: string,
+  produto: Produto
+) {
+  const { error } = await supabase
+    .from("produtos")
+    .update({
+      codigo: produto.codigo,
+      descricao: produto.descricao,
+      unidade: produto.unidade,
+      quantidade: produto.quantidade,
+      estoque_minimo:
+        produto.estoqueMinimo,
+      preco_compra:
+        produto.precoCompra,
+      observacao:
+        produto.observacao,
+      fornecedor_id:
+        produto.fornecedorId || null,
+    })
+    .eq("codigo", codigoOriginal);
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
 export async function registrarEntradaProduto(
   codigo: string,
-  quantidade: number
+  quantidade: number,
+  fornecedorId: number,
+  precoCompra: number
 ) {
   const { data: produto } = await supabase
     .from("produtos")
@@ -64,6 +96,13 @@ export async function registrarEntradaProduto(
     .from("produtos")
     .update({
       quantidade: novaQuantidade,
+
+      fornecedor_id:
+        fornecedorId,
+
+      preco_compra:
+        precoCompra,
+
       ultima_entrada:
         new Date().toISOString(),
     })
@@ -114,31 +153,7 @@ export async function registrarSaidaProduto(
     throw error;
   }
 }
-export async function atualizarProduto(
-  codigoOriginal: string,
-  produto: Produto
-) {
-  const { error } = await supabase
-    .from("produtos")
-    .update({
-      codigo: produto.codigo,
-      descricao: produto.descricao,
-      unidade: produto.unidade,
-      quantidade: produto.quantidade,
-      estoque_minimo:
-        produto.estoqueMinimo,
-      preco_compra:
-        produto.precoCompra,
-      observacao:
-        produto.observacao,
-    })
-    .eq("codigo", codigoOriginal);
 
-  if (error) {
-    console.error(error);
-    throw error;
-  }
-}
 export async function moverParaLixeira(
   produto: Produto
 ) {
@@ -155,8 +170,12 @@ export async function moverParaLixeira(
         produto.precoCompra,
       observacao:
         produto.observacao,
+      fornecedor_id:
+        produto.fornecedorId || null,
       ultima_entrada:
         produto.ultimaEntrada || null,
+      data_exclusao:
+        new Date().toISOString(),
     });
 
   if (error) {
@@ -178,11 +197,12 @@ export async function excluirProduto(
     throw error;
   }
 }
+
 export async function buscarLixeira() {
   const { data, error } = await supabase
     .from("lixeira")
     .select("*")
-    .order("data_exclusao", {
+    .order("id", {
       ascending: false,
     });
 
@@ -202,21 +222,28 @@ export async function restaurarProdutoLixeira(
       .from("produtos")
       .insert({
         codigo: produto.codigo,
-        descricao: produto.descricao,
-        unidade: produto.unidade,
-        quantidade: produto.quantidade,
+        descricao:
+          produto.descricao,
+        unidade:
+          produto.unidade,
+        quantidade:
+          produto.quantidade,
         estoque_minimo:
           produto.estoque_minimo,
         preco_compra:
           produto.preco_compra,
         observacao:
           produto.observacao,
+        fornecedor_id:
+          produto.fornecedor_id,
         ultima_entrada:
           produto.ultima_entrada,
       });
 
   if (erroInserir) {
-    console.error(erroInserir);
+    console.error(
+      erroInserir
+    );
     throw erroInserir;
   }
 
@@ -227,7 +254,9 @@ export async function restaurarProdutoLixeira(
       .eq("id", produto.id);
 
   if (erroExcluir) {
-    console.error(erroExcluir);
+    console.error(
+      erroExcluir
+    );
     throw erroExcluir;
   }
 }

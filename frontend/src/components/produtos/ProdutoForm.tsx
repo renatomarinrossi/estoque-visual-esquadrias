@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import type { Produto } from "../../types/produto";
+
+import { buscarFornecedores } from "../../services/fornecedorSupabase";
 
 type Props = {
   onSalvar: (produto: Produto) => void;
@@ -12,17 +15,33 @@ export default function ProdutoForm({
   onCancelar,
   produtoInicial,
 }: Props) {
-  const [produto, setProduto] = useState<Produto>(
-    produtoInicial || {
-      codigo: "",
-      descricao: "",
-      unidade: "UN",
-      quantidade: 0,
-      estoqueMinimo: 0,
-      precoCompra: 0,
-      observacao: "",
+  const [fornecedores, setFornecedores] =
+    useState<any[]>([]);
+
+  const [produto, setProduto] =
+    useState<Produto>(
+      produtoInicial || {
+        codigo: "",
+        descricao: "",
+        unidade: "UN",
+        quantidade: 0,
+        estoqueMinimo: 0,
+        precoCompra: 0,
+        observacao: "",
+        fornecedorId: undefined,
+      }
+    );
+
+  useEffect(() => {
+    async function carregarFornecedores() {
+      const dados =
+        await buscarFornecedores();
+
+      setFornecedores(dados);
     }
-  );
+
+    carregarFornecedores();
+  }, []);
 
   function salvar() {
     onSalvar(produto);
@@ -69,7 +88,8 @@ export default function ProdutoForm({
             onChange={(e) =>
               setProduto({
                 ...produto,
-                descricao: e.target.value,
+                descricao:
+                  e.target.value,
               })
             }
           />
@@ -86,7 +106,8 @@ export default function ProdutoForm({
             onChange={(e) =>
               setProduto({
                 ...produto,
-                unidade: e.target.value,
+                unidade:
+                  e.target.value,
               })
             }
           >
@@ -111,7 +132,10 @@ export default function ProdutoForm({
             onChange={(e) =>
               setProduto({
                 ...produto,
-                quantidade: Number(e.target.value),
+                quantidade:
+                  Number(
+                    e.target.value
+                  ),
               })
             }
           />
@@ -125,11 +149,16 @@ export default function ProdutoForm({
           <input
             type="number"
             className="border rounded-lg p-2 w-full"
-            value={produto.estoqueMinimo}
+            value={
+              produto.estoqueMinimo
+            }
             onChange={(e) =>
               setProduto({
                 ...produto,
-                estoqueMinimo: Number(e.target.value),
+                estoqueMinimo:
+                  Number(
+                    e.target.value
+                  ),
               })
             }
           />
@@ -144,28 +173,82 @@ export default function ProdutoForm({
             type="number"
             step="0.01"
             className="border rounded-lg p-2 w-full"
-            value={produto.precoCompra}
+            value={
+              produto.precoCompra
+            }
             onChange={(e) =>
               setProduto({
                 ...produto,
-                precoCompra: Number(e.target.value),
+                precoCompra:
+                  Number(
+                    e.target.value
+                  ),
               })
             }
           />
         </div>
 
-        <div className="col-span-2">
+        <div>
+          <label className="block mb-2">
+            Fornecedor Padrão
+          </label>
+
+          <select
+            className="border rounded-lg p-2 w-full"
+            value={
+              produto.fornecedorId ||
+              ""
+            }
+            onChange={(e) =>
+              setProduto({
+                ...produto,
+                fornecedorId:
+                  e.target.value
+                    ? Number(
+                        e.target.value
+                      )
+                    : undefined,
+              })
+            }
+          >
+            <option value="">
+              Selecione
+            </option>
+
+            {fornecedores.map(
+              (fornecedor) => (
+                <option
+                  key={
+                    fornecedor.id
+                  }
+                  value={
+                    fornecedor.id
+                  }
+                >
+                  {
+                    fornecedor.nome_fantasia
+                  }
+                </option>
+              )
+            )}
+          </select>
+        </div>
+
+        <div className="col-span-1">
           <label className="block mb-2">
             Observação
           </label>
 
           <input
             className="border rounded-lg p-2 w-full"
-            value={produto.observacao}
+            value={
+              produto.observacao
+            }
             onChange={(e) =>
               setProduto({
                 ...produto,
-                observacao: e.target.value,
+                observacao:
+                  e.target.value,
               })
             }
           />

@@ -16,14 +16,7 @@ import Saida from "./pages/Saida/Saida";
 import Compras from "./pages/Compras/Compras";
 import Lixeira from "./pages/Lixeira/Lixeira";
 import Login from "./pages/Login/Login";
-
-function Fornecedores() {
-  return (
-    <h1 className="text-4xl font-bold text-blue-900">
-      Fornecedores
-    </h1>
-  );
-}
+import Fornecedores from "./pages/Fornecedores/Fornecedores";
 
 function App() {
   const [carregando, setCarregando] =

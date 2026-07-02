@@ -13,6 +13,10 @@ import {
   excluirProduto as excluirProdutoSupabase,
 } from "../../services/produtoSupabase";
 
+import {
+  buscarFornecedores,
+} from "../../services/fornecedorSupabase";
+
 export default function Produtos() {
   const [mostrarFormulario, setMostrarFormulario] =
     useState(false);
@@ -23,28 +27,61 @@ export default function Produtos() {
   const [pesquisa, setPesquisa] =
     useState("");
 
-  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [produtos, setProdutos] =
+    useState<Produto[]>([]);
 
   async function carregarDados() {
-    const dados = await buscarProdutos();
+    const dados =
+      await buscarProdutos();
+
+    const fornecedores =
+      await buscarFornecedores();
 
     const produtosConvertidos =
-      dados.map((produto: any) => ({
-        codigo: produto.codigo,
-        descricao: produto.descricao,
-        unidade: produto.unidade,
-        quantidade: produto.quantidade,
-        estoqueMinimo:
-          produto.estoque_minimo,
-        precoCompra:
-          produto.preco_compra,
-        observacao:
-          produto.observacao || "",
-        ultimaEntrada:
-          produto.ultima_entrada || "",
-      }));
+      dados.map((produto: any) => {
+        const fornecedor =
+          fornecedores.find(
+            (f: any) =>
+              f.id ===
+              produto.fornecedor_id
+          );
 
-    setProdutos(produtosConvertidos);
+        return {
+          codigo: produto.codigo,
+
+          descricao:
+            produto.descricao,
+
+          unidade:
+            produto.unidade,
+
+          quantidade:
+            produto.quantidade,
+
+          estoqueMinimo:
+            produto.estoque_minimo,
+
+          precoCompra:
+            produto.preco_compra,
+
+          observacao:
+            produto.observacao || "",
+
+          fornecedorId:
+            produto.fornecedor_id,
+
+          fornecedorNome:
+            fornecedor?.nome_fantasia ||
+            "-",
+
+          ultimaEntrada:
+            produto.ultima_entrada || "",
+        };
+      });
+
+    setProdutos(
+      produtosConvertidos
+    );
   }
 
   useEffect(() => {
@@ -55,20 +92,28 @@ export default function Produtos() {
     produto: Produto
   ) {
     try {
-      if (produtoEditando) {
+      if (
+        produtoEditando
+      ) {
         await atualizarProduto(
           produtoEditando.codigo,
           produto
         );
 
-        setProdutoEditando(null);
+        setProdutoEditando(
+          null
+        );
       } else {
-        await inserirProduto(produto);
+        await inserirProduto(
+          produto
+        );
       }
 
       await carregarDados();
 
-      setMostrarFormulario(false);
+      setMostrarFormulario(
+        false
+      );
     } catch (error) {
       console.error(error);
 
@@ -81,21 +126,29 @@ export default function Produtos() {
   function editarProduto(
     produto: Produto
   ) {
-    setProdutoEditando(produto);
-    setMostrarFormulario(true);
+    setProdutoEditando(
+      produto
+    );
+
+    setMostrarFormulario(
+      true
+    );
   }
 
   async function excluirProduto(
     produto: Produto
   ) {
-    const confirmar = confirm(
-      `Excluir o produto ${produto.descricao}?`
-    );
+    const confirmar =
+      confirm(
+        `Excluir o produto ${produto.descricao}?`
+      );
 
     if (!confirmar) return;
 
     try {
-      await moverParaLixeira(produto);
+      await moverParaLixeira(
+        produto
+      );
 
       await excluirProdutoSupabase(
         produto.codigo
@@ -116,48 +169,65 @@ export default function Produtos() {
   }
 
   const produtosFiltrados =
-    produtos.filter((produto) => {
-      const texto =
-        pesquisa.toLowerCase();
+    produtos.filter(
+      (produto) => {
+        const texto =
+          pesquisa.toLowerCase();
 
-      return (
-        produto.codigo
-          .toLowerCase()
-          .includes(texto) ||
-        produto.descricao
-          .toLowerCase()
-          .includes(texto)
-      );
-    });
+        return (
+          produto.codigo
+            .toLowerCase()
+            .includes(
+              texto
+            ) ||
+          produto.descricao
+            .toLowerCase()
+            .includes(
+              texto
+            )
+        );
+      }
+    );
 
   return (
     <>
       <div className="flex justify-between items-center mb-8">
+
         <h1 className="text-4xl font-bold text-blue-900">
           Produtos
         </h1>
 
         <button
           onClick={() => {
-            setProdutoEditando(null);
-            setMostrarFormulario(true);
+            setProdutoEditando(
+              null
+            );
+
+            setMostrarFormulario(
+              true
+            );
           }}
           className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg"
         >
           Novo Produto
         </button>
+
       </div>
 
       <div className="mb-6">
+
         <input
           type="text"
           placeholder="Pesquisar..."
           value={pesquisa}
           onChange={(e) =>
-            setPesquisa(e.target.value)
+            setPesquisa(
+              e.target.value
+            )
           }
           className="w-full bg-white border rounded-xl p-4"
         />
+
       </div>
 
       {mostrarFormulario && (
@@ -165,18 +235,31 @@ export default function Produtos() {
           produtoInicial={
             produtoEditando
           }
-          onSalvar={salvarProduto}
+          onSalvar={
+            salvarProduto
+          }
           onCancelar={() => {
-            setMostrarFormulario(false);
-            setProdutoEditando(null);
+            setMostrarFormulario(
+              false
+            );
+
+            setProdutoEditando(
+              null
+            );
           }}
         />
       )}
 
       <ProdutoTable
-        produtos={produtosFiltrados}
-        onExcluir={excluirProduto}
-        onEditar={editarProduto}
+        produtos={
+          produtosFiltrados
+        }
+        onExcluir={
+          excluirProduto
+        }
+        onEditar={
+          editarProduto
+        }
       />
     </>
   );

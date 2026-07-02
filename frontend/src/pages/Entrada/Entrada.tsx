@@ -5,25 +5,43 @@ import {
   registrarEntradaProduto,
 } from "../../services/produtoSupabase";
 
+import { buscarFornecedores } from "../../services/fornecedorSupabase";
+
 export default function Entrada() {
   const [produtos, setProdutos] =
+    useState<any[]>([]);
+
+  const [fornecedores, setFornecedores] =
     useState<any[]>([]);
 
   const [codigo, setCodigo] =
     useState("");
 
+  const [fornecedorId, setFornecedorId] =
+    useState("");
+
+  const [precoCompra, setPrecoCompra] =
+    useState("");
+
   const [quantidade, setQuantidade] =
     useState("");
 
-  async function carregarProdutos() {
-    const dados =
+  async function carregarDados() {
+    const produtosBanco =
       await buscarProdutos();
 
-    setProdutos(dados);
+    const fornecedoresBanco =
+      await buscarFornecedores();
+
+    setProdutos(produtosBanco);
+
+    setFornecedores(
+      fornecedoresBanco
+    );
   }
 
   useEffect(() => {
-    carregarProdutos();
+    carregarDados();
   }, []);
 
   const produtoSelecionado =
@@ -31,24 +49,60 @@ export default function Entrada() {
       (p) => p.codigo === codigo
     );
 
+  useEffect(() => {
+    if (!produtoSelecionado)
+      return;
+
+    setFornecedorId(
+      produtoSelecionado.fornecedor_id
+        ? String(
+            produtoSelecionado.fornecedor_id
+          )
+        : ""
+    );
+
+    setPrecoCompra(
+      produtoSelecionado.preco_compra
+        ? String(
+            produtoSelecionado.preco_compra
+          )
+        : ""
+    );
+  }, [produtoSelecionado]);
+
   async function registrarEntrada() {
     if (!codigo) {
-      alert("Selecione um produto");
+      alert(
+        "Selecione um produto"
+      );
+      return;
+    }
+
+    if (!fornecedorId) {
+      alert(
+        "Selecione um fornecedor"
+      );
       return;
     }
 
     try {
       await registrarEntradaProduto(
         codigo,
-        Number(quantidade)
+        Number(quantidade),
+        Number(fornecedorId),
+        Number(precoCompra)
       );
 
-      alert("Entrada registrada");
+      alert(
+        "Entrada registrada"
+      );
 
       setCodigo("");
+      setFornecedorId("");
+      setPrecoCompra("");
       setQuantidade("");
 
-      await carregarProdutos();
+      await carregarDados();
     } catch {
       alert(
         "Erro ao registrar entrada"
@@ -65,6 +119,7 @@ export default function Entrada() {
       <div className="bg-white rounded-xl shadow-md p-6 max-w-xl">
 
         <div className="mb-4">
+
           <label className="block mb-2">
             Produto
           </label>
@@ -72,7 +127,9 @@ export default function Entrada() {
           <select
             value={codigo}
             onChange={(e) =>
-              setCodigo(e.target.value)
+              setCodigo(
+                e.target.value
+              )
             }
             className="w-full border rounded-lg p-2"
           >
@@ -80,44 +137,135 @@ export default function Entrada() {
               Selecione
             </option>
 
-            {produtos.map((produto) => (
-              <option
-                key={produto.codigo}
-                value={produto.codigo}
-              >
-                {produto.codigo} - {produto.descricao}
-              </option>
-            ))}
+            {produtos.map(
+              (produto) => (
+                <option
+                  key={
+                    produto.codigo
+                  }
+                  value={
+                    produto.codigo
+                  }
+                >
+                  {produto.codigo}
+                  {" - "}
+                  {
+                    produto.descricao
+                  }
+                </option>
+              )
+            )}
           </select>
+
         </div>
 
         {produtoSelecionado && (
+
           <div className="mb-4 p-3 bg-slate-100 rounded">
+
             Estoque Atual:
+
             <strong>
               {" "}
-              {produtoSelecionado.quantidade}
+              {
+                produtoSelecionado.quantidade
+              }
             </strong>
+
           </div>
+
         )}
 
         <div className="mb-4">
+
+          <label className="block mb-2">
+            Fornecedor
+          </label>
+
+          <select
+            value={
+              fornecedorId
+            }
+            onChange={(e) =>
+              setFornecedorId(
+                e.target.value
+              )
+            }
+            className="w-full border rounded-lg p-2"
+          >
+            <option value="">
+              Selecione
+            </option>
+
+            {fornecedores.map(
+              (
+                fornecedor
+              ) => (
+                <option
+                  key={
+                    fornecedor.id
+                  }
+                  value={
+                    fornecedor.id
+                  }
+                >
+                  {
+                    fornecedor.nome_fantasia
+                  }
+                </option>
+              )
+            )}
+          </select>
+
+        </div>
+
+        <div className="mb-4">
+
+          <label className="block mb-2">
+            Preço Compra
+          </label>
+
+          <input
+            type="number"
+            step="0.01"
+            value={
+              precoCompra
+            }
+            onChange={(e) =>
+              setPrecoCompra(
+                e.target.value
+              )
+            }
+            className="w-full border rounded-lg p-2"
+          />
+
+        </div>
+
+        <div className="mb-4">
+
           <label className="block mb-2">
             Quantidade
           </label>
 
           <input
             type="number"
-            value={quantidade}
+            value={
+              quantidade
+            }
             onChange={(e) =>
-              setQuantidade(e.target.value)
+              setQuantidade(
+                e.target.value
+              )
             }
             className="w-full border rounded-lg p-2"
           />
+
         </div>
 
         <button
-          onClick={registrarEntrada}
+          onClick={
+            registrarEntrada
+          }
           className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg"
         >
           Registrar Entrada

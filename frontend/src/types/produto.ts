@@ -6,5 +6,9 @@ export type Produto = {
   estoqueMinimo: number;
   precoCompra: number;
   observacao: string;
+
+  fornecedorId?: number;
+  fornecedorNome?: string;
+
   ultimaEntrada?: string;
 };
