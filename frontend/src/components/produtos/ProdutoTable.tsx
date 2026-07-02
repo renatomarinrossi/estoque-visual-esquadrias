@@ -29,6 +29,10 @@ export default function ProdutoTable({
             </th>
 
             <th>
+              Categoria
+            </th>
+
+            <th>
               Unidade
             </th>
 
@@ -81,6 +85,10 @@ export default function ProdutoTable({
                 </td>
 
                 <td className="text-center">
+                  {produto.categoria || "-"}
+                </td>
+
+                <td className="text-center">
                   {produto.unidade}
                 </td>
 
@@ -93,7 +101,7 @@ export default function ProdutoTable({
                 </td>
 
                 <td className="text-center">
-                  R$ {produto.precoCompra.toFixed(2)}
+                  R$ {(produto.precoCompra || 0).toFixed(2)}
                 </td>
 
                 <td className="text-center">

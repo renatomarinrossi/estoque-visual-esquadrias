@@ -23,6 +23,7 @@ export async function inserirProduto(
     .insert({
       codigo: produto.codigo,
       descricao: produto.descricao,
+      categoria: produto.categoria,
       unidade: produto.unidade,
       quantidade: produto.quantidade,
       estoque_minimo:
@@ -52,6 +53,7 @@ export async function atualizarProduto(
     .update({
       codigo: produto.codigo,
       descricao: produto.descricao,
+      categoria: produto.categoria,
       unidade: produto.unidade,
       quantidade: produto.quantidade,
       estoque_minimo:
@@ -96,13 +98,10 @@ export async function registrarEntradaProduto(
     .from("produtos")
     .update({
       quantidade: novaQuantidade,
-
       fornecedor_id:
         fornecedorId,
-
       preco_compra:
         precoCompra,
-
       ultima_entrada:
         new Date().toISOString(),
     })
@@ -162,6 +161,7 @@ export async function moverParaLixeira(
     .insert({
       codigo: produto.codigo,
       descricao: produto.descricao,
+      categoria: produto.categoria,
       unidade: produto.unidade,
       quantidade: produto.quantidade,
       estoque_minimo:
@@ -224,6 +224,8 @@ export async function restaurarProdutoLixeira(
         codigo: produto.codigo,
         descricao:
           produto.descricao,
+        categoria:
+          produto.categoria,
         unidade:
           produto.unidade,
         quantidade:

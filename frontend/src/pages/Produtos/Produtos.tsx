@@ -52,6 +52,9 @@ export default function Produtos() {
           descricao:
             produto.descricao,
 
+          categoria:
+            produto.categoria || "",
+
           unidade:
             produto.unidade,
 

@@ -23,6 +23,7 @@ export default function ProdutoForm({
       produtoInicial || {
         codigo: "",
         descricao: "",
+        categoria: "",
         unidade: "UN",
         quantidade: 0,
         estoqueMinimo: 0,
@@ -44,6 +45,13 @@ export default function ProdutoForm({
   }, []);
 
   function salvar() {
+    if (!produto.categoria) {
+      alert(
+        "Selecione uma categoria"
+      );
+      return;
+    }
+
     onSalvar(produto);
   }
 
@@ -93,6 +101,58 @@ export default function ProdutoForm({
               })
             }
           />
+        </div>
+
+        <div>
+          <label className="block mb-2">
+            Categoria
+          </label>
+
+          <select
+            className="border rounded-lg p-2 w-full"
+            value={
+              produto.categoria || ""
+            }
+            onChange={(e) =>
+              setProduto({
+                ...produto,
+                categoria:
+                  e.target.value,
+              })
+            }
+          >
+            <option value="">
+              Selecione
+            </option>
+
+            <option>
+              Vidros
+            </option>
+
+            <option>
+              Alumínio
+            </option>
+
+            <option>
+              Acessórios
+            </option>
+
+            <option>
+              Ferramentas
+            </option>
+
+            <option>
+              Parafusos/Brocas
+            </option>
+
+            <option>
+              Silicone/PU
+            </option>
+
+            <option>
+              Borrachas
+            </option>
+          </select>
         </div>
 
         <div>
@@ -190,7 +250,7 @@ export default function ProdutoForm({
 
         <div>
           <label className="block mb-2">
-            Fornecedor Padrão
+            Fornecedor
           </label>
 
           <select
@@ -234,7 +294,7 @@ export default function ProdutoForm({
           </select>
         </div>
 
-        <div className="col-span-1">
+        <div className="col-span-4">
           <label className="block mb-2">
             Observação
           </label>
