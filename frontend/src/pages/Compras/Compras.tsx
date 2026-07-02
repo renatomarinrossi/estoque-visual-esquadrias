@@ -1,22 +1,27 @@
 import { useEffect, useState } from "react";
 
+import { buscarProdutos } from "../../services/produtoSupabase";
+
 export default function Compras() {
-  const [produtos, setProdutos] = useState<any[]>([]);
+  const [produtos, setProdutos] =
+    useState<any[]>([]);
 
-  useEffect(() => {
-    const dados = JSON.parse(
-      localStorage.getItem(
-        "visual_esquadrias_produtos"
-      ) || "[]"
-    );
+  async function carregarCompras() {
+    const dados =
+      await buscarProdutos();
 
-    const abaixoMinimo = dados.filter(
-      (produto: any) =>
-        produto.quantidade <=
-        produto.estoqueMinimo
-    );
+    const abaixoMinimo =
+      dados.filter(
+        (produto: any) =>
+          produto.quantidade <=
+          produto.estoque_minimo
+      );
 
     setProdutos(abaixoMinimo);
+  }
+
+  useEffect(() => {
+    carregarCompras();
   }, []);
 
   return (
@@ -26,13 +31,10 @@ export default function Compras() {
       </h1>
 
       <div className="bg-white rounded-xl shadow-md p-6">
-
         <table className="w-full">
 
           <thead>
-
             <tr className="border-b">
-
               <th className="text-left py-3">
                 Código
               </th>
@@ -52,66 +54,62 @@ export default function Compras() {
               <th>
                 Comprar
               </th>
-
             </tr>
-
           </thead>
 
           <tbody>
 
             {produtos.length === 0 ? (
               <tr>
-
                 <td
                   colSpan={5}
                   className="text-center py-8 text-gray-500"
                 >
                   Nenhum item precisa de reposição
                 </td>
-
               </tr>
             ) : (
-              produtos.map((produto) => {
+              produtos.map(
+                (produto) => {
+                  const comprar =
+                    produto.estoque_minimo -
+                    produto.quantidade;
 
-                const comprar =
-                  produto.estoqueMinimo -
-                  produto.quantidade;
+                  return (
+                    <tr
+                      key={produto.codigo}
+                      className="border-b"
+                    >
+                      <td>
+                        {produto.codigo}
+                      </td>
 
-                return (
-                  <tr
-                    key={produto.codigo}
-                    className="border-b"
-                  >
+                      <td>
+                        {produto.descricao}
+                      </td>
 
-                    <td>
-                      {produto.codigo}
-                    </td>
+                      <td className="text-center text-red-600 font-bold">
+                        {produto.quantidade}
+                      </td>
 
-                    <td>
-                      {produto.descricao}
-                    </td>
+                      <td className="text-center">
+                        {
+                          produto.estoque_minimo
+                        }
+                      </td>
 
-                    <td className="text-center text-red-600 font-bold">
-                      {produto.quantidade}
-                    </td>
-
-                    <td className="text-center">
-                      {produto.estoqueMinimo}
-                    </td>
-
-                    <td className="text-center font-bold text-orange-600">
-                      {comprar}
-                    </td>
-
-                  </tr>
-                );
-              })
+                      <td className="text-center font-bold text-orange-600">
+                        {comprar}
+                      </td>
+                    </tr>
+                  );
+                }
+              )
             )}
 
           </tbody>
 
         </table>
-
       </div>
     </>
   );
