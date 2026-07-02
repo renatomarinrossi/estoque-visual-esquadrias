@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { buscarProdutos } from "../../services/produtoSupabase";
+
 export default function Dashboard() {
   const [totalProdutos, setTotalProdutos] =
     useState(0);
@@ -10,33 +12,30 @@ export default function Dashboard() {
   const [totalLixeira, setTotalLixeira] =
     useState(0);
 
-  useEffect(() => {
-    const produtos = JSON.parse(
-      localStorage.getItem(
-        "visual_esquadrias_produtos"
-      ) || "[]"
+  async function carregarDashboard() {
+    const produtos =
+      await buscarProdutos();
+
+    setTotalProdutos(
+      produtos.length
     );
-
-    const lixeira = JSON.parse(
-      localStorage.getItem(
-        "visual_esquadrias_lixeira"
-      ) || "[]"
-    );
-
-    setTotalProdutos(produtos.length);
-
-    setTotalLixeira(lixeira.length);
 
     const abaixoMinimo =
       produtos.filter(
         (produto: any) =>
           produto.quantidade <=
-          produto.estoqueMinimo
+          produto.estoque_minimo
       );
 
     setEstoqueBaixo(
       abaixoMinimo.length
     );
+
+    setTotalLixeira(0);
+  }
+
+  useEffect(() => {
+    carregarDashboard();
   }, []);
 
   return (

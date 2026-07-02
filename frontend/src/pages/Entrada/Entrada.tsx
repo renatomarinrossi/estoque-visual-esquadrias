@@ -1,18 +1,29 @@
 import { useEffect, useState } from "react";
 
-export default function Entrada() {
-  const [produtos, setProdutos] = useState<any[]>([]);
-  const [codigo, setCodigo] = useState("");
-  const [quantidade, setQuantidade] = useState("");
+import {
+  buscarProdutos,
+  registrarEntradaProduto,
+} from "../../services/produtoSupabase";
 
-  useEffect(() => {
-    const dados = JSON.parse(
-      localStorage.getItem(
-        "visual_esquadrias_produtos"
-      ) || "[]"
-    );
+export default function Entrada() {
+  const [produtos, setProdutos] =
+    useState<any[]>([]);
+
+  const [codigo, setCodigo] =
+    useState("");
+
+  const [quantidade, setQuantidade] =
+    useState("");
+
+  async function carregarProdutos() {
+    const dados =
+      await buscarProdutos();
 
     setProdutos(dados);
+  }
+
+  useEffect(() => {
+    carregarProdutos();
   }, []);
 
   const produtoSelecionado =
@@ -20,36 +31,29 @@ export default function Entrada() {
       (p) => p.codigo === codigo
     );
 
-  function registrarEntrada() {
-    const produtosAtualizados = [...produtos];
-
-    const index =
-      produtosAtualizados.findIndex(
-        (p) => p.codigo === codigo
-      );
-
-    if (index === -1) {
+  async function registrarEntrada() {
+    if (!codigo) {
       alert("Selecione um produto");
       return;
     }
 
-    produtosAtualizados[index].quantidade +=
-      Number(quantidade);
+    try {
+      await registrarEntradaProduto(
+        codigo,
+        Number(quantidade)
+      );
 
-    produtosAtualizados[index].ultimaEntrada =
-      new Date().toISOString();
+      alert("Entrada registrada");
 
-    localStorage.setItem(
-      "visual_esquadrias_produtos",
-      JSON.stringify(produtosAtualizados)
-    );
+      setCodigo("");
+      setQuantidade("");
 
-    setProdutos(produtosAtualizados);
-
-    alert("Entrada registrada");
-
-    setCodigo("");
-    setQuantidade("");
+      await carregarProdutos();
+    } catch {
+      alert(
+        "Erro ao registrar entrada"
+      );
+    }
   }
 
   return (

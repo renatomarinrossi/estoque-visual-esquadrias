@@ -1,26 +1,18 @@
 import { useEffect, useState } from "react";
 
-type ProdutoLixeira = {
-  codigo: string;
-  descricao: string;
-  unidade: string;
-  quantidade: number;
-  estoqueMinimo: number;
-  precoCompra: number;
-  observacao: string;
-  dataExclusao: string;
-};
+import {
+  buscarLixeira,
+  restaurarProdutoLixeira,
+  excluirLixeira,
+} from "../../services/produtoSupabase";
 
 export default function Lixeira() {
   const [produtos, setProdutos] =
-    useState<ProdutoLixeira[]>([]);
+    useState<any[]>([]);
 
-  function carregarDados() {
-    const dados = JSON.parse(
-      localStorage.getItem(
-        "visual_esquadrias_lixeira"
-      ) || "[]"
-    );
+  async function carregarDados() {
+    const dados =
+      await buscarLixeira();
 
     setProdutos(dados);
   }
@@ -29,58 +21,54 @@ export default function Lixeira() {
     carregarDados();
   }, []);
 
-  function restaurarProduto(
-    produto: ProdutoLixeira
+  async function restaurarProduto(
+    produto: any
   ) {
-    const produtosAtuais = JSON.parse(
-      localStorage.getItem(
-        "visual_esquadrias_produtos"
-      ) || "[]"
-    );
-
-    produtosAtuais.push({
-      codigo: produto.codigo,
-      descricao: produto.descricao,
-      unidade: produto.unidade,
-      quantidade: produto.quantidade,
-      estoqueMinimo:
-        produto.estoqueMinimo,
-      precoCompra: produto.precoCompra,
-      observacao: produto.observacao,
-    });
-
-    localStorage.setItem(
-      "visual_esquadrias_produtos",
-      JSON.stringify(produtosAtuais)
-    );
-
-    const novaLixeira =
-      produtos.filter(
-        (p) => p.codigo !== produto.codigo
+    try {
+      await restaurarProdutoLixeira(
+        produto
       );
 
-    localStorage.setItem(
-      "visual_esquadrias_lixeira",
-      JSON.stringify(novaLixeira)
-    );
+      await carregarDados();
 
-    carregarDados();
+      alert(
+        "Produto restaurado"
+      );
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Erro ao restaurar produto"
+      );
+    }
   }
 
-  function excluirDefinitivo(
-    produto: ProdutoLixeira
+  async function excluirDefinitivo(
+    produto: any
   ) {
-    const novaLixeira =
-      produtos.filter(
-        (p) => p.codigo !== produto.codigo
-      );
-
-    localStorage.setItem(
-      "visual_esquadrias_lixeira",
-      JSON.stringify(novaLixeira)
+    const confirmar = confirm(
+      "Excluir definitivamente?"
     );
 
-    carregarDados();
+    if (!confirmar) return;
+
+    try {
+      await excluirLixeira(
+        produto.id
+      );
+
+      await carregarDados();
+
+      alert(
+        "Produto removido definitivamente"
+      );
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Erro ao excluir produto"
+      );
+    }
   }
 
   return (
@@ -131,10 +119,10 @@ export default function Lixeira() {
 
               </tr>
             ) : (
-              produtos.map((produto, index) => (
+              produtos.map((produto) => (
 
                 <tr
-                  key={index}
+                  key={produto.id}
                   className="border-b"
                 >
 
@@ -148,8 +136,10 @@ export default function Lixeira() {
 
                   <td>
                     {new Date(
-                      produto.dataExclusao
-                    ).toLocaleDateString("pt-BR")}
+                      produto.data_exclusao
+                    ).toLocaleDateString(
+                      "pt-BR"
+                    )}
                   </td>
 
                   <td className="flex gap-2 py-2">

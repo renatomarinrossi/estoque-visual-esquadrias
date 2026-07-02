@@ -1,18 +1,29 @@
 import { useEffect, useState } from "react";
 
-export default function Saida() {
-  const [produtos, setProdutos] = useState<any[]>([]);
-  const [codigo, setCodigo] = useState("");
-  const [quantidade, setQuantidade] = useState("");
+import {
+  buscarProdutos,
+  registrarSaidaProduto,
+} from "../../services/produtoSupabase";
 
-  useEffect(() => {
-    const dados = JSON.parse(
-      localStorage.getItem(
-        "visual_esquadrias_produtos"
-      ) || "[]"
-    );
+export default function Saida() {
+  const [produtos, setProdutos] =
+    useState<any[]>([]);
+
+  const [codigo, setCodigo] =
+    useState("");
+
+  const [quantidade, setQuantidade] =
+    useState("");
+
+  async function carregarProdutos() {
+    const dados =
+      await buscarProdutos();
 
     setProdutos(dados);
+  }
+
+  useEffect(() => {
+    carregarProdutos();
   }, []);
 
   const produtoSelecionado =
@@ -20,49 +31,30 @@ export default function Saida() {
       (p) => p.codigo === codigo
     );
 
-  function registrarSaida() {
-    const produtosAtualizados = [...produtos];
-
-    const index =
-      produtosAtualizados.findIndex(
-        (p) => p.codigo === codigo
-      );
-
-    if (index === -1) {
+  async function registrarSaida() {
+    if (!codigo) {
       alert("Selecione um produto");
       return;
     }
 
-    const estoqueAtual =
-      produtosAtualizados[index]
-        .quantidade;
-
-    if (
-      estoqueAtual -
-        Number(quantidade) <
-      0
-    ) {
-      alert(
-        "Estoque insuficiente"
+    try {
+      await registrarSaidaProduto(
+        codigo,
+        Number(quantidade)
       );
 
-      return;
+      alert("Saída registrada");
+
+      setCodigo("");
+      setQuantidade("");
+
+      await carregarProdutos();
+    } catch (erro: any) {
+      alert(
+        erro?.message ||
+          "Erro ao registrar saída"
+      );
     }
-
-    produtosAtualizados[index].quantidade -=
-      Number(quantidade);
-
-    localStorage.setItem(
-      "visual_esquadrias_produtos",
-      JSON.stringify(produtosAtualizados)
-    );
-
-    setProdutos(produtosAtualizados);
-
-    alert("Saída registrada");
-
-    setCodigo("");
-    setQuantidade("");
   }
 
   return (

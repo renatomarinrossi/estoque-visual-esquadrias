@@ -6,9 +6,12 @@ import ProdutoTable from "../../components/produtos/ProdutoTable";
 import type { Produto } from "../../types/produto";
 
 import {
-  carregarProdutos,
-  salvarProdutos,
-} from "../../services/produtoStorage";
+  buscarProdutos,
+  inserirProduto,
+  atualizarProduto,
+  moverParaLixeira,
+  excluirProduto as excluirProdutoSupabase,
+} from "../../services/produtoSupabase";
 
 export default function Produtos() {
   const [mostrarFormulario, setMostrarFormulario] =
@@ -20,74 +23,96 @@ export default function Produtos() {
   const [pesquisa, setPesquisa] =
     useState("");
 
-  const [produtos, setProdutos] = useState<Produto[]>(
-    carregarProdutos()
-  );
+  const [produtos, setProdutos] = useState<Produto[]>([]);
 
-  useEffect(() => {
-    salvarProdutos(produtos);
-  }, [produtos]);
+  async function carregarDados() {
+    const dados = await buscarProdutos();
 
-  function salvarProduto(produto: Produto) {
-    if (produtoEditando) {
-      const atualizados = produtos.map((p) =>
-        p.codigo === produtoEditando.codigo
-          ? produto
-          : p
-      );
+    const produtosConvertidos =
+      dados.map((produto: any) => ({
+        codigo: produto.codigo,
+        descricao: produto.descricao,
+        unidade: produto.unidade,
+        quantidade: produto.quantidade,
+        estoqueMinimo:
+          produto.estoque_minimo,
+        precoCompra:
+          produto.preco_compra,
+        observacao:
+          produto.observacao || "",
+        ultimaEntrada:
+          produto.ultima_entrada || "",
+      }));
 
-      setProdutos(atualizados);
-      setProdutoEditando(null);
-    } else {
-      setProdutos([
-        ...produtos,
-        produto,
-      ]);
-    }
-
-    setMostrarFormulario(false);
+    setProdutos(produtosConvertidos);
   }
 
-  function editarProduto(produto: Produto) {
+  useEffect(() => {
+    carregarDados();
+  }, []);
+
+  async function salvarProduto(
+    produto: Produto
+  ) {
+    try {
+      if (produtoEditando) {
+        await atualizarProduto(
+          produtoEditando.codigo,
+          produto
+        );
+
+        setProdutoEditando(null);
+      } else {
+        await inserirProduto(produto);
+      }
+
+      await carregarDados();
+
+      setMostrarFormulario(false);
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Erro ao salvar produto"
+      );
+    }
+  }
+
+  function editarProduto(
+    produto: Produto
+  ) {
     setProdutoEditando(produto);
     setMostrarFormulario(true);
   }
 
-  function excluirProduto(produto: Produto) {
-    const produtosAtualizados =
-      produtos.filter(
-        (p) => p.codigo !== produto.codigo
+  async function excluirProduto(
+    produto: Produto
+  ) {
+    const confirmar = confirm(
+      `Excluir o produto ${produto.descricao}?`
+    );
+
+    if (!confirmar) return;
+
+    try {
+      await moverParaLixeira(produto);
+
+      await excluirProdutoSupabase(
+        produto.codigo
       );
 
-    setProdutos(produtosAtualizados);
+      await carregarDados();
 
-    const lixeiraAtual = JSON.parse(
-      localStorage.getItem(
-        "visual_esquadrias_lixeira"
-      ) || "[]"
-    );
+      alert(
+        "Produto enviado para a lixeira"
+      );
+    } catch (error) {
+      console.error(error);
 
-    const itemLixeira = {
-      codigo: produto.codigo,
-      descricao: produto.descricao,
-      unidade: produto.unidade,
-      quantidade: produto.quantidade,
-      estoqueMinimo:
-        produto.estoqueMinimo,
-      precoCompra:
-        produto.precoCompra,
-      observacao:
-        produto.observacao || "",
-      dataExclusao:
-        new Date().toISOString(),
-    };
-
-    lixeiraAtual.push(itemLixeira);
-
-    localStorage.setItem(
-      "visual_esquadrias_lixeira",
-      JSON.stringify(lixeiraAtual)
-    );
+      alert(
+        "Erro ao excluir produto"
+      );
+    }
   }
 
   const produtosFiltrados =
