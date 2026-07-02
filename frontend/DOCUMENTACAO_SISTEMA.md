@@ -1,70 +1,35 @@
-# DOCUMENTAÇÃO DO SISTEMA
+# Controle de Estoque - Visual Esquadrias
 
-## Nome do Sistema
+## Tecnologias Utilizadas
 
-Estoque Visual Esquadrias
-
----
-
-# Tecnologias
-
-Frontend:
 - React
 - TypeScript
 - Vite
 - Tailwind CSS
-
-Backend:
 - Supabase
-
-Hospedagem:
+- jsPDF
+- jspdf-autotable
 - Vercel
 
-Controle de versão:
-- Git
-- GitHub
-
 ---
 
-# Objetivo
-
-Sistema de controle de estoque para a Visual Esquadrias.
-
-Controle de:
-
-- Produtos
-- Entradas
-- Saídas
-- Fornecedores
-- Compras
-- Lixeira
-
----
-
-# Funcionalidades Concluídas
-
-## Login
-
-- Login utilizando Supabase Auth
-- Sessão encerrada ao fechar navegador
-- Acesso protegido
-
----
+# Estrutura do Sistema
 
 ## Dashboard
 
-Exibe:
+Indicadores:
 
 - Total de produtos
-- Produtos abaixo do mínimo
-- Valor total do estoque
-- Status do sistema
+- Produtos com estoque baixo
+- Sistema online
 
 ---
 
 ## Produtos
 
-Cadastro de:
+Cadastro completo de produtos.
+
+Campos:
 
 - Código
 - Descrição
@@ -73,18 +38,8 @@ Cadastro de:
 - Quantidade
 - Estoque mínimo
 - Preço de compra
-- Último fornecedor
+- Fornecedor padrão
 - Observação
-
-Permite:
-
-- Inserir
-- Editar
-- Excluir
-
----
-
-## Categorias
 
 Categorias cadastradas:
 
@@ -96,97 +51,123 @@ Categorias cadastradas:
 - Silicone/PU
 - Borrachas
 
+Funcionalidades:
+
+- Cadastro
+- Edição
+- Exclusão para lixeira
+- Pesquisa por código
+- Pesquisa por descrição
+- Filtro por categoria
+- Exibição do último fornecedor
+- Exibição da última entrada
+
 ---
 
 ## Fornecedores
 
-Cadastro de:
+Cadastro de fornecedores.
+
+Campos:
 
 - Razão Social
 - Nome Fantasia
 - CNPJ
 - Telefone
 - E-mail
-- Observações
+- Categoria
 
-Permite:
+Categorias:
 
-- Inserir
-- Editar
-- Excluir
+- Vidros
+- Alumínio
+- Acessórios
+- Ferramentas
+- Parafusos/Brocas
+- Silicone/PU
+- Borrachas
+
+Funcionalidades:
+
+- Cadastro
+- Edição
+- Exclusão
 
 ---
 
 ## Entrada de Estoque
 
-Permite:
+Funcionalidades:
 
-- Selecionar produto
-- Selecionar fornecedor
-- Informar quantidade
-- Informar preço de compra
+- Busca inteligente por descrição
+- Seleção rápida de produto
+- Atualização automática do estoque
+- Atualização automática do fornecedor
+- Atualização automática do preço de compra
+- Atualização automática da última entrada
 
-Atualiza automaticamente:
+Componente utilizado:
 
-- Estoque
-- Último fornecedor
-- Último preço pago
-- Data da última entrada
+src/components/produtos/BuscaProduto.tsx
 
 ---
 
 ## Saída de Estoque
 
-Permite:
+Funcionalidades:
 
-- Selecionar produto
-- Informar quantidade
+- Busca inteligente por descrição
+- Seleção rápida de produto
+- Baixa automática do estoque
+- Validação de estoque insuficiente
 
-Valida:
+Componente utilizado:
 
-- Estoque disponível
-
-Atualiza:
-
-- Quantidade em estoque
+src/components/produtos/BuscaProduto.tsx
 
 ---
 
 ## Compras
 
-Exibe apenas produtos abaixo do estoque mínimo.
+Lista automática de produtos abaixo do estoque mínimo.
 
-Possui:
+Cálculo:
 
+Quantidade a comprar =
+Estoque mínimo - Estoque atual
+
+Funcionalidades:
+
+- Separação por categoria
 - Filtro por categoria
-- Quantidade sugerida para compra
+- Geração de PDF
+- Exportação da lista de compras
 
-Fórmula:
+Categorias:
 
-Comprar = Estoque Mínimo - Estoque Atual
-
-Exportação:
-
-- PDF por categoria
+- Vidros
+- Alumínio
+- Acessórios
+- Ferramentas
+- Parafusos/Brocas
+- Silicone/PU
+- Borrachas
 
 ---
 
 ## Lixeira
 
-Ao excluir um produto:
+Funcionalidades:
 
-- Produto é movido para lixeira
-
-Permite:
-
-- Restaurar produto
-- Excluir definitivamente
+- Armazenamento de produtos excluídos
+- Restauração de produtos
+- Exclusão definitiva
 
 ---
 
-# Estrutura de Banco
+# Banco de Dados
 
-## produtos
+## Tabela produtos
 
 Campos principais:
 
@@ -197,13 +178,13 @@ Campos principais:
 - quantidade
 - estoque_minimo
 - preco_compra
-- fornecedor_id
 - observacao
+- fornecedor_id
 - ultima_entrada
 
 ---
 
-## fornecedores
+## Tabela fornecedores
 
 Campos principais:
 
@@ -213,84 +194,142 @@ Campos principais:
 - cnpj
 - telefone
 - email
+- categoria
+
+---
+
+## Tabela lixeira
+
+Campos principais:
+
+- codigo
+- descricao
+- categoria
+- unidade
+- quantidade
+- estoque_minimo
+- preco_compra
 - observacao
+- fornecedor_id
+- ultima_entrada
+- data_exclusao
 
 ---
 
-## lixeira
+# Componentes Criados
 
-Armazena produtos excluídos.
+## BuscaProduto
 
----
+Arquivo:
 
-# Padrão de Desenvolvimento
+src/components/produtos/BuscaProduto.tsx
 
-IMPORTANTE:
+Responsável por:
 
-Sempre enviar arquivos completos.
-
-Não enviar apenas trechos para alteração.
-
----
-
-# Roadmap
-
-## Sprint 11
-
-Histórico de Compras
-
-Criar tabela:
-
-entradas
-
-Registrar:
-
-- Produto
-- Quantidade
-- Fornecedor
-- Preço
-- Data
+- Pesquisar produtos por descrição
+- Exibir lista filtrada
+- Selecionar produto rapidamente
+- Reutilizado em Entrada e Saída
 
 ---
 
-## Sprint 12
+# Histórico de Implementações
 
-Dashboard Inteligente
+## Sprint 01
 
-Adicionar:
+- Estrutura inicial do projeto
+- Integração Supabase
+- Cadastro de produtos
 
+## Sprint 02
+
+- Cadastro de fornecedores
+
+## Sprint 03
+
+- Entrada de estoque
+
+## Sprint 04
+
+- Saída de estoque
+
+## Sprint 05
+
+- Dashboard
+
+## Sprint 06
+
+- Lixeira
+
+## Sprint 07
+
+- Último fornecedor
 - Última entrada
-- Itens para compra
-- Fornecedor mais utilizado
-- Estatísticas
+
+## Sprint 08
+
+- Categorias de produtos
+
+## Sprint 09
+
+- Lista de compras
+- PDF da lista de compras
+
+## Sprint 10
+
+- Busca inteligente por descrição
+- Filtro por categoria em Produtos
+- Categoria Borrachas
+- BuscaProduto reutilizável
 
 ---
 
-## Sprint 13
+# Status Atual
 
-Relatórios
+Funcionando:
 
-- Estoque Atual
-- Entradas
-- Saídas
-- Compras
+- Dashboard
+- Produtos
 - Fornecedores
+- Entrada
+- Saída
+- Compras
+- Lixeira
 
 ---
 
-## Sprint 14
+# Próximas Melhorias
 
-Backup
+Planejadas:
 
-Exportação Excel.
+- PDF da tela Produtos
+- Histórico de movimentações
+- Relatório de entradas
+- Relatório de saídas
+- Relatório por fornecedor
+- Controle de usuários
+- Níveis de acesso
+- Backup automático
+- Auditoria de alterações
 
 ---
 
-# Última Atualização
+# Deploy
 
-Categorias implementadas.
+Hospedagem:
 
-PDF de compras implementado.
+- Vercel
 
-Versão estável:
-v1.0
+Banco de Dados:
+
+- Supabase
+
+---
+
+# Observações
+
+Sistema desenvolvido para uso interno da Visual Esquadrias.
+
+Objetivo:
+
+Controlar estoque, compras, fornecedores e movimentações de materiais de forma simples e rápida.
