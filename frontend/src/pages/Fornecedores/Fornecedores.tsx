@@ -16,6 +16,7 @@ const categorias = [
   "Ferramentas",
   "Parafusos/Brocas",
   "Silicone/PU",
+  "Borrachas",
 ];
 
 export default function Fornecedores() {

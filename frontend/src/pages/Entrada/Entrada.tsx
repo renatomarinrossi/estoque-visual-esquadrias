@@ -7,6 +7,8 @@ import {
 
 import { buscarFornecedores } from "../../services/fornecedorSupabase";
 
+import BuscaProduto from "../../components/produtos/BuscaProduto";
+
 export default function Entrada() {
   const [produtos, setProdutos] =
     useState<any[]>([]);
@@ -28,7 +30,12 @@ export default function Entrada() {
 
   async function carregarDados() {
     const produtosBanco =
-      await buscarProdutos();
+      (await buscarProdutos()).sort(
+        (a: any, b: any) =>
+          a.descricao.localeCompare(
+            b.descricao
+          )
+      );
 
     const fornecedoresBanco =
       await buscarFornecedores();
@@ -124,38 +131,14 @@ export default function Entrada() {
             Produto
           </label>
 
-          <select
-            value={codigo}
-            onChange={(e) =>
+          <BuscaProduto
+            produtos={produtos}
+            onSelecionar={(produto) =>
               setCodigo(
-                e.target.value
+                produto.codigo
               )
             }
-            className="w-full border rounded-lg p-2"
-          >
-            <option value="">
-              Selecione
-            </option>
-
-            {produtos.map(
-              (produto) => (
-                <option
-                  key={
-                    produto.codigo
-                  }
-                  value={
-                    produto.codigo
-                  }
-                >
-                  {produto.codigo}
-                  {" - "}
-                  {
-                    produto.descricao
-                  }
-                </option>
-              )
-            )}
-          </select>
+          />
 
         </div>
 

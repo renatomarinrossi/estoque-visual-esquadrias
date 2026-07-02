@@ -5,6 +5,8 @@ import {
   registrarSaidaProduto,
 } from "../../services/produtoSupabase";
 
+import BuscaProduto from "../../components/produtos/BuscaProduto";
+
 export default function Saida() {
   const [produtos, setProdutos] =
     useState<any[]>([]);
@@ -17,7 +19,12 @@ export default function Saida() {
 
   async function carregarProdutos() {
     const dados =
-      await buscarProdutos();
+      (await buscarProdutos()).sort(
+        (a: any, b: any) =>
+          a.descricao.localeCompare(
+            b.descricao
+          )
+      );
 
     setProdutos(dados);
   }
@@ -33,7 +40,9 @@ export default function Saida() {
 
   async function registrarSaida() {
     if (!codigo) {
-      alert("Selecione um produto");
+      alert(
+        "Selecione um produto"
+      );
       return;
     }
 
@@ -43,7 +52,9 @@ export default function Saida() {
         Number(quantidade)
       );
 
-      alert("Saída registrada");
+      alert(
+        "Saída registrada"
+      );
 
       setCodigo("");
       setQuantidade("");
@@ -66,59 +77,64 @@ export default function Saida() {
       <div className="bg-white rounded-xl shadow-md p-6 max-w-xl">
 
         <div className="mb-4">
+
           <label className="block mb-2">
             Produto
           </label>
 
-          <select
-            value={codigo}
-            onChange={(e) =>
-              setCodigo(e.target.value)
+          <BuscaProduto
+            produtos={produtos}
+            onSelecionar={(produto) =>
+              setCodigo(
+                produto.codigo
+              )
             }
-            className="w-full border rounded-lg p-2"
-          >
-            <option value="">
-              Selecione
-            </option>
+          />
 
-            {produtos.map((produto) => (
-              <option
-                key={produto.codigo}
-                value={produto.codigo}
-              >
-                {produto.codigo} - {produto.descricao}
-              </option>
-            ))}
-          </select>
         </div>
 
         {produtoSelecionado && (
+
           <div className="mb-4 p-3 bg-slate-100 rounded">
+
             Estoque Atual:
+
             <strong>
               {" "}
-              {produtoSelecionado.quantidade}
+              {
+                produtoSelecionado.quantidade
+              }
             </strong>
+
           </div>
+
         )}
 
         <div className="mb-4">
+
           <label className="block mb-2">
             Quantidade
           </label>
 
           <input
             type="number"
-            value={quantidade}
+            value={
+              quantidade
+            }
             onChange={(e) =>
-              setQuantidade(e.target.value)
+              setQuantidade(
+                e.target.value
+              )
             }
             className="w-full border rounded-lg p-2"
           />
+
         </div>
 
         <button
-          onClick={registrarSaida}
+          onClick={
+            registrarSaida
+          }
           className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg"
         >
           Registrar Saída

@@ -27,6 +27,9 @@ export default function Produtos() {
   const [pesquisa, setPesquisa] =
     useState("");
 
+  const [categoria, setCategoria] =
+    useState("Todas");
+
   const [produtos, setProdutos] =
     useState<Produto[]>([]);
 
@@ -177,7 +180,7 @@ export default function Produtos() {
         const texto =
           pesquisa.toLowerCase();
 
-        return (
+        const pesquisaOk =
           produto.codigo
             .toLowerCase()
             .includes(
@@ -187,7 +190,17 @@ export default function Produtos() {
             .toLowerCase()
             .includes(
               texto
-            )
+            );
+
+        const categoriaOk =
+          categoria === "Todas"
+            ? true
+            : produto.categoria ===
+              categoria;
+
+        return (
+          pesquisaOk &&
+          categoriaOk
         );
       }
     );
@@ -230,6 +243,57 @@ export default function Produtos() {
           }
           className="w-full bg-white border rounded-xl p-4"
         />
+
+      </div>
+
+      <div className="mb-6">
+
+        <label className="block mb-2 font-semibold">
+          Categoria
+        </label>
+
+        <select
+          value={categoria}
+          onChange={(e) =>
+            setCategoria(
+              e.target.value
+            )
+          }
+          className="border rounded-xl p-3 w-80 bg-white"
+        >
+          <option>
+            Todas
+          </option>
+
+          <option>
+            Vidros
+          </option>
+
+          <option>
+            Alumínio
+          </option>
+
+          <option>
+            Acessórios
+          </option>
+
+          <option>
+            Ferramentas
+          </option>
+
+          <option>
+            Parafusos/Brocas
+          </option>
+
+          <option>
+            Silicone/PU
+          </option>
+
+          <option>
+            Borrachas
+          </option>
+
+        </select>
 
       </div>
 
