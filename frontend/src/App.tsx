@@ -14,9 +14,10 @@ import Produtos from "./pages/Produtos/Produtos";
 import Entrada from "./pages/Entrada/Entrada";
 import Saida from "./pages/Saida/Saida";
 import Compras from "./pages/Compras/Compras";
-import Lixeira from "./pages/Lixeira/Lixeira";
-import Login from "./pages/Login/Login";
 import Fornecedores from "./pages/Fornecedores/Fornecedores";
+import Lixeira from "./pages/Lixeira/Lixeira";
+import Sistema from "./pages/Sistema/Sistema";
+import Login from "./pages/Login/Login";
 
 function App() {
   const [carregando, setCarregando] =
@@ -52,6 +53,7 @@ function App() {
 
   return (
     <BrowserRouter>
+
       <Routes>
 
         <Route
@@ -104,9 +106,15 @@ function App() {
             element={<Lixeira />}
           />
 
+          <Route
+            path="sistema"
+            element={<Sistema />}
+          />
+
         </Route>
 
       </Routes>
+
     </BrowserRouter>
   );
 }

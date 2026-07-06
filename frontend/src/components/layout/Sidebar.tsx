@@ -7,6 +7,7 @@ import {
   ShoppingCart,
   Truck,
   Trash2,
+  Settings,
 } from "lucide-react";
 
 const menu = [
@@ -45,16 +46,23 @@ const menu = [
     rota: "/lixeira",
     icone: Trash2,
   },
+  {
+    nome: "Sistema",
+    rota: "/sistema",
+    icone: Settings,
+  },
 ];
 
 export default function Sidebar() {
   return (
     <aside className="w-72 bg-blue-900 text-white flex flex-col">
+
       <div className="text-4xl font-bold p-8 border-b border-blue-700">
         Visual Esquadrias
       </div>
 
       <nav className="flex-1 mt-6">
+
         {menu.map((item) => {
           const Icon = item.icone;
 
@@ -75,7 +83,9 @@ export default function Sidebar() {
             </NavLink>
           );
         })}
+
       </nav>
+
     </aside>
   );
 }

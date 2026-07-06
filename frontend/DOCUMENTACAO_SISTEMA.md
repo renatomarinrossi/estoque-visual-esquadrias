@@ -1,8 +1,14 @@
 # Controle de Estoque - Visual Esquadrias
 
-## Tecnologias Utilizadas
+Versão: 1.0.0
 
-- React
+Última atualização: Julho/2026
+
+---
+
+# Tecnologias Utilizadas
+
+- React 19
 - TypeScript
 - Vite
 - Tailwind CSS
@@ -21,11 +27,11 @@ Indicadores:
 
 - Total de produtos
 - Produtos com estoque baixo
-- Sistema online
+- Sistema Online
 
 ---
 
-## Produtos
+# Produtos
 
 Cadastro completo de produtos.
 
@@ -36,12 +42,12 @@ Campos:
 - Categoria
 - Unidade
 - Quantidade
-- Estoque mínimo
-- Preço de compra
-- Fornecedor padrão
-- Observação
+- Estoque Mínimo
+- Preço de Compra
+- Fornecedor Padrão
+- Observações
 
-Categorias cadastradas:
+Categorias:
 
 - Vidros
 - Alumínio
@@ -55,7 +61,7 @@ Funcionalidades:
 
 - Cadastro
 - Edição
-- Exclusão para lixeira
+- Exclusão para Lixeira
 - Pesquisa por código
 - Pesquisa por descrição
 - Filtro por categoria
@@ -64,18 +70,22 @@ Funcionalidades:
 
 ---
 
-## Fornecedores
+# Fornecedores
 
-Cadastro de fornecedores.
+Cadastro completo de fornecedores.
 
 Campos:
 
 - Razão Social
 - Nome Fantasia
-- CNPJ
-- Telefone
-- E-mail
 - Categoria
+- Contato
+- Telefone
+- WhatsApp
+- E-mail
+- Cidade
+- Estado
+- Observações
 
 Categorias:
 
@@ -92,10 +102,13 @@ Funcionalidades:
 - Cadastro
 - Edição
 - Exclusão
+- Filtro por categoria
+- Visualização detalhada do fornecedor através de expansão da linha
+- Componentização da tela
 
 ---
 
-## Entrada de Estoque
+# Entrada de Estoque
 
 Funcionalidades:
 
@@ -112,7 +125,7 @@ src/components/produtos/BuscaProduto.tsx
 
 ---
 
-## Saída de Estoque
+# Saída de Estoque
 
 Funcionalidades:
 
@@ -127,19 +140,20 @@ src/components/produtos/BuscaProduto.tsx
 
 ---
 
-## Compras
+# Compras
 
 Lista automática de produtos abaixo do estoque mínimo.
 
 Cálculo:
 
-Quantidade a comprar =
-Estoque mínimo - Estoque atual
+Quantidade a Comprar =
+Estoque Mínimo - Estoque Atual
 
 Funcionalidades:
 
-- Separação por categoria
+- Lista automática
 - Filtro por categoria
+- Separação por categoria
 - Geração de PDF
 - Exportação da lista de compras
 
@@ -155,7 +169,7 @@ Categorias:
 
 ---
 
-## Lixeira
+# Lixeira
 
 Funcionalidades:
 
@@ -169,7 +183,7 @@ Funcionalidades:
 
 ## Tabela produtos
 
-Campos principais:
+Campos:
 
 - codigo
 - descricao
@@ -186,21 +200,25 @@ Campos principais:
 
 ## Tabela fornecedores
 
-Campos principais:
+Campos:
 
 - id
 - razao_social
 - nome_fantasia
-- cnpj
-- telefone
-- email
 - categoria
+- contato
+- telefone
+- whatsapp
+- email
+- cidade
+- estado
+- observacoes
 
 ---
 
 ## Tabela lixeira
 
-Campos principais:
+Campos:
 
 - codigo
 - descricao
@@ -216,9 +234,11 @@ Campos principais:
 
 ---
 
-# Componentes Criados
+# Componentes
 
-## BuscaProduto
+## Produtos
+
+### BuscaProduto
 
 Arquivo:
 
@@ -226,10 +246,61 @@ src/components/produtos/BuscaProduto.tsx
 
 Responsável por:
 
-- Pesquisar produtos por descrição
-- Exibir lista filtrada
-- Selecionar produto rapidamente
+- Pesquisa inteligente por descrição
+- Lista dinâmica de resultados
+- Seleção rápida de produtos
 - Reutilizado em Entrada e Saída
+
+---
+
+## Fornecedores
+
+### FornecedorForm
+
+Arquivo:
+
+src/components/fornecedores/FornecedorForm.tsx
+
+Responsável por:
+
+- Cadastro
+- Edição
+- Validação dos dados do fornecedor
+
+---
+
+### FornecedorTable
+
+Arquivo:
+
+src/components/fornecedores/FornecedorTable.tsx
+
+Responsável por:
+
+- Listagem dos fornecedores
+- Botões Editar e Excluir
+- Expansão dos detalhes
+
+---
+
+### FornecedorDetalhes
+
+Arquivo:
+
+src/components/fornecedores/FornecedorDetalhes.tsx
+
+Responsável por:
+
+- Exibição completa dos dados do fornecedor
+- Razão Social
+- Categoria
+- Contato
+- Telefone
+- WhatsApp
+- Email
+- Cidade
+- Estado
+- Observações
 
 ---
 
@@ -238,7 +309,7 @@ Responsável por:
 ## Sprint 01
 
 - Estrutura inicial do projeto
-- Integração Supabase
+- Integração com Supabase
 - Cadastro de produtos
 
 ## Sprint 02
@@ -272,21 +343,69 @@ Responsável por:
 
 ## Sprint 09
 
-- Lista de compras
-- PDF da lista de compras
+- Lista de Compras
+- Geração de PDF da Lista de Compras
 
 ## Sprint 10
 
 - Busca inteligente por descrição
+- Componente BuscaProduto
+- Busca reutilizada em Entrada e Saída
 - Filtro por categoria em Produtos
-- Categoria Borrachas
-- BuscaProduto reutilizável
+- Inclusão da categoria Borrachas
+
+## Sprint 11
+
+Refatoração completa da tela de Fornecedores.
+
+Componentização da tela:
+
+- FornecedorForm
+- FornecedorTable
+- FornecedorDetalhes
+
+Melhorias:
+
+- Código organizado
+- Componentes reutilizáveis
+- Expansão dos detalhes do fornecedor
+- Preparação da arquitetura para futuras evoluções
+
+---
+
+# Estrutura Atual do Projeto
+
+```
+src/
+
+components/
+│
+├── produtos/
+│   ├── ProdutoForm.tsx
+│   ├── ProdutoTable.tsx
+│   └── BuscaProduto.tsx
+│
+├── fornecedores/
+│   ├── FornecedorForm.tsx
+│   ├── FornecedorTable.tsx
+│   └── FornecedorDetalhes.tsx
+│
+pages/
+│
+├── Dashboard
+├── Produtos
+├── Fornecedores
+├── Entrada
+├── Saída
+├── Compras
+└── Lixeira
+```
 
 ---
 
 # Status Atual
 
-Funcionando:
+## Funcionando
 
 - Dashboard
 - Produtos
@@ -300,36 +419,57 @@ Funcionando:
 
 # Próximas Melhorias
 
-Planejadas:
+Planejamento atual:
 
 - PDF da tela Produtos
 - Histórico de movimentações
-- Relatório de entradas
-- Relatório de saídas
-- Relatório por fornecedor
+- Relatório de Entradas
+- Relatório de Saídas
+- Relatório por Fornecedor
 - Controle de usuários
-- Níveis de acesso
+- Perfis de acesso
 - Backup automático
 - Auditoria de alterações
+- Indicadores financeiros
+- Dashboard avançado
 
 ---
 
 # Deploy
 
-Hospedagem:
+Frontend
 
 - Vercel
 
-Banco de Dados:
+Banco de Dados
 
 - Supabase
 
 ---
 
-# Observações
+# Objetivo do Sistema
 
 Sistema desenvolvido para uso interno da Visual Esquadrias.
 
-Objetivo:
+Objetivos:
 
-Controlar estoque, compras, fornecedores e movimentações de materiais de forma simples e rápida.
+- Controlar estoque
+- Controlar fornecedores
+- Controlar compras
+- Registrar entradas e saídas
+- Organizar reposições
+- Facilitar consultas rápidas
+- Manter simplicidade e rapidez no uso
+
+---
+
+# Observações
+
+O sistema foi desenvolvido priorizando:
+
+- Simplicidade
+- Facilidade de utilização
+- Componentização do código
+- Reutilização de componentes
+- Facilidade de manutenção
+- Escalabilidade para futuras funcionalidades
