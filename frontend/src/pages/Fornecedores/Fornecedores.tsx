@@ -9,6 +9,9 @@ import {
   excluirFornecedor,
 } from "../../services/fornecedorSupabase";
 
+import FornecedorForm from "../../components/fornecedores/FornecedorForm";
+import FornecedorTable from "../../components/fornecedores/FornecedorTable";
+
 const categorias = [
   "Vidros",
   "Alumínio",
@@ -19,38 +22,58 @@ const categorias = [
   "Borrachas",
 ];
 
+const fornecedorVazio: Fornecedor = {
+  razao_social: "",
+  nome_fantasia: "",
+  categoria: "Vidros",
+  contato: "",
+  telefone: "",
+  whatsapp: "",
+  email: "",
+  cidade: "",
+  estado: "",
+  observacoes: "",
+};
+
 export default function Fornecedores() {
-  const [fornecedores, setFornecedores] =
-    useState<Fornecedor[]>([]);
+  const [
+    fornecedores,
+    setFornecedores,
+  ] = useState<Fornecedor[]>([]);
 
-  const [mostrarFormulario, setMostrarFormulario] =
-    useState(false);
+  const [
+    mostrarFormulario,
+    setMostrarFormulario,
+  ] = useState(false);
 
-  const [fornecedorEditando, setFornecedorEditando] =
-    useState<Fornecedor | null>(null);
+  const [
+    fornecedorEditando,
+    setFornecedorEditando,
+  ] =
+    useState<Fornecedor | null>(
+      null
+    );
 
-  const [categoriaFiltro, setCategoriaFiltro] =
-    useState("Todos");
+  const [
+    categoriaFiltro,
+    setCategoriaFiltro,
+  ] = useState("Todos");
 
-  const [fornecedor, setFornecedor] =
-    useState<Fornecedor>({
-      razao_social: "",
-      nome_fantasia: "",
-      categoria: "Vidros",
-      contato: "",
-      telefone: "",
-      whatsapp: "",
-      email: "",
-      cidade: "",
-      estado: "",
-      observacoes: "",
-    });
+  const [
+    fornecedor,
+    setFornecedor,
+  ] =
+    useState<Fornecedor>(
+      fornecedorVazio
+    );
 
   async function carregarDados() {
     const dados =
       await buscarFornecedores();
 
-    setFornecedores(dados as Fornecedor[]);
+    setFornecedores(
+      dados as Fornecedor[]
+    );
   }
 
   useEffect(() => {
@@ -74,22 +97,17 @@ export default function Fornecedores() {
 
       await carregarDados();
 
-      setFornecedor({
-        razao_social: "",
-        nome_fantasia: "",
-        categoria: "Vidros",
-        contato: "",
-        telefone: "",
-        whatsapp: "",
-        email: "",
-        cidade: "",
-        estado: "",
-        observacoes: "",
-      });
+      setFornecedor(
+        fornecedorVazio
+      );
 
-      setFornecedorEditando(null);
+      setFornecedorEditando(
+        null
+      );
 
-      setMostrarFormulario(false);
+      setMostrarFormulario(
+        false
+      );
     } catch (error) {
       console.error(error);
 
@@ -104,9 +122,13 @@ export default function Fornecedores() {
   ) {
     setFornecedor(item);
 
-    setFornecedorEditando(item);
+    setFornecedorEditando(
+      item
+    );
 
-    setMostrarFormulario(true);
+    setMostrarFormulario(
+      true
+    );
   }
 
   async function removerFornecedor(
@@ -150,18 +172,9 @@ export default function Fornecedores() {
               null
             );
 
-            setFornecedor({
-              razao_social: "",
-              nome_fantasia: "",
-              categoria: "Vidros",
-              contato: "",
-              telefone: "",
-              whatsapp: "",
-              email: "",
-              cidade: "",
-              estado: "",
-              observacoes: "",
-            });
+            setFornecedor(
+              fornecedorVazio
+            );
 
             setMostrarFormulario(
               true
@@ -200,297 +213,34 @@ export default function Fornecedores() {
           )}
         </select>
 
-      </div>
+      </div>      {mostrarFormulario && (
+        <FornecedorForm
+          fornecedor={fornecedor}
+          setFornecedor={setFornecedor}
+          categorias={categorias}
+          onSalvar={salvarFornecedor}
+          onCancelar={() => {
+            setMostrarFormulario(false);
 
-      {mostrarFormulario && (
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+            setFornecedorEditando(
+              null
+            );
 
-          <div className="grid grid-cols-3 gap-4">
-
-            <input
-              placeholder="Razão Social"
-              value={
-                fornecedor.razao_social
-              }
-              onChange={(e) =>
-                setFornecedor({
-                  ...fornecedor,
-                  razao_social:
-                    e.target.value,
-                })
-              }
-              className="border rounded-lg p-2"
-            />
-
-            <input
-              placeholder="Nome Fantasia"
-              value={
-                fornecedor.nome_fantasia
-              }
-              onChange={(e) =>
-                setFornecedor({
-                  ...fornecedor,
-                  nome_fantasia:
-                    e.target.value,
-                })
-              }
-              className="border rounded-lg p-2"
-            />
-
-            <select
-              value={
-                fornecedor.categoria
-              }
-              onChange={(e) =>
-                setFornecedor({
-                  ...fornecedor,
-                  categoria:
-                    e.target.value,
-                })
-              }
-              className="border rounded-lg p-2"
-            >
-              {categorias.map(
-                (categoria) => (
-                  <option
-                    key={categoria}
-                  >
-                    {categoria}
-                  </option>
-                )
-              )}
-            </select>
-
-            <input
-              placeholder="Contato"
-              value={
-                fornecedor.contato
-              }
-              onChange={(e) =>
-                setFornecedor({
-                  ...fornecedor,
-                  contato:
-                    e.target.value,
-                })
-              }
-              className="border rounded-lg p-2"
-            />
-
-            <input
-              placeholder="Telefone"
-              value={
-                fornecedor.telefone
-              }
-              onChange={(e) =>
-                setFornecedor({
-                  ...fornecedor,
-                  telefone:
-                    e.target.value,
-                })
-              }
-              className="border rounded-lg p-2"
-            />
-
-            <input
-              placeholder="WhatsApp"
-              value={
-                fornecedor.whatsapp
-              }
-              onChange={(e) =>
-                setFornecedor({
-                  ...fornecedor,
-                  whatsapp:
-                    e.target.value,
-                })
-              }
-              className="border rounded-lg p-2"
-            />
-
-            <input
-              placeholder="E-mail"
-              value={
-                fornecedor.email
-              }
-              onChange={(e) =>
-                setFornecedor({
-                  ...fornecedor,
-                  email:
-                    e.target.value,
-                })
-              }
-              className="border rounded-lg p-2"
-            />
-
-            <input
-              placeholder="Cidade"
-              value={
-                fornecedor.cidade
-              }
-              onChange={(e) =>
-                setFornecedor({
-                  ...fornecedor,
-                  cidade:
-                    e.target.value,
-                })
-              }
-              className="border rounded-lg p-2"
-            />
-
-            <input
-              placeholder="Estado"
-              value={
-                fornecedor.estado
-              }
-              onChange={(e) =>
-                setFornecedor({
-                  ...fornecedor,
-                  estado:
-                    e.target.value,
-                })
-              }
-              className="border rounded-lg p-2"
-            />
-
-          </div>
-
-          <textarea
-            placeholder="Observações"
-            value={
-              fornecedor.observacoes
-            }
-            onChange={(e) =>
-              setFornecedor({
-                ...fornecedor,
-                observacoes:
-                  e.target.value,
-              })
-            }
-            className="border rounded-lg p-2 w-full mt-4"
-          />
-
-          <div className="flex gap-3 mt-4">
-
-            <button
-              onClick={
-                salvarFornecedor
-              }
-              className="bg-green-600 text-white px-5 py-2 rounded-lg"
-            >
-              Salvar
-            </button>
-
-            <button
-              onClick={() =>
-                setMostrarFormulario(
-                  false
-                )
-              }
-              className="bg-gray-300 px-5 py-2 rounded-lg"
-            >
-              Cancelar
-            </button>
-
-          </div>
-
-        </div>
+            setFornecedor(
+              fornecedorVazio
+            );
+          }}
+        />
       )}
 
-      <div className="bg-white rounded-xl shadow-md p-6">
-
-        <table className="w-full">
-
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-3">
-                Nome
-              </th>
-
-              <th>
-                Categoria
-              </th>
-
-              <th>
-                Contato
-              </th>
-
-              <th>
-                Telefone
-              </th>
-
-              <th>
-                Ações
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-
-            {lista.map(
-              (fornecedor) => (
-                <tr
-                  key={
-                    fornecedor.id
-                  }
-                  className="border-b"
-                >
-                  <td>
-                    {
-                      fornecedor.nome_fantasia
-                    }
-                  </td>
-
-                  <td className="text-center">
-                    {
-                      fornecedor.categoria
-                    }
-                  </td>
-
-                  <td className="text-center">
-                    {
-                      fornecedor.contato
-                    }
-                  </td>
-
-                  <td className="text-center">
-                    {
-                      fornecedor.telefone
-                    }
-                  </td>
-
-                  <td className="flex gap-2 justify-center py-2">
-
-                    <button
-                      onClick={() =>
-                        editarFornecedor(
-                          fornecedor
-                        )
-                      }
-                      className="bg-yellow-500 text-white px-3 py-1 rounded"
-                    >
-                      Editar
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        removerFornecedor(
-                          fornecedor
-                        )
-                      }
-                      className="bg-red-600 text-white px-3 py-1 rounded"
-                    >
-                      Excluir
-                    </button>
-
-                  </td>
-                </tr>
-              )
-            )}
-
-          </tbody>
-
-        </table>
-
-      </div>
-    </>
+      <FornecedorTable
+        fornecedores={lista}
+        onEditar={
+          editarFornecedor
+        }
+        onExcluir={
+          removerFornecedor
+        }
+      />    </>
   );
 }

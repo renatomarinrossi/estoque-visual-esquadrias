@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 import ProdutoForm from "../../components/produtos/ProdutoForm";
 import ProdutoTable from "../../components/produtos/ProdutoTable";
 
@@ -205,6 +208,64 @@ export default function Produtos() {
       }
     );
 
+  function gerarPDF() {
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+
+    doc.text(
+      "Visual Esquadrias",
+      14,
+      20
+    );
+
+    doc.setFontSize(12);
+
+    doc.text(
+      `Relatório de Produtos - ${categoria}`,
+      14,
+      30
+    );
+
+    doc.text(
+      `Data: ${new Date().toLocaleDateString(
+        "pt-BR"
+      )}`,
+      14,
+      38
+    );
+
+    autoTable(doc, {
+      startY: 45,
+
+      head: [[
+        "Código",
+        "Descrição",
+        "Categoria",
+        "Unidade",
+        "Estoque",
+        "Mínimo",
+        "Preço Compra",
+      ]],
+
+      body: produtosFiltrados.map(
+  (produto) => [
+    produto.codigo,
+    produto.descricao,
+    produto.categoria || "-",
+    produto.unidade,
+    produto.quantidade,
+    produto.estoqueMinimo,
+    `R$ ${produto.precoCompra.toFixed(2)}`,
+  ]
+),
+    });
+
+    doc.save(
+      `produtos-${categoria}.pdf`
+    );
+  }
+
   return (
     <>
       <div className="flex justify-between items-center mb-8">
@@ -213,24 +274,33 @@ export default function Produtos() {
           Produtos
         </h1>
 
-        <button
-          onClick={() => {
-            setProdutoEditando(
-              null
-            );
+        <div className="flex gap-3">
 
-            setMostrarFormulario(
-              true
-            );
-          }}
-          className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg"
-        >
-          Novo Produto
-        </button>
+          <button
+            onClick={gerarPDF}
+            className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-lg"
+          >
+            Gerar PDF
+          </button>
 
-      </div>
+          <button
+            onClick={() => {
+              setProdutoEditando(
+                null
+              );
 
-      <div className="mb-6">
+              setMostrarFormulario(
+                true
+              );
+            }}
+            className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg"
+          >
+            Novo Produto
+          </button>
+
+        </div>
+
+      </div>      <div className="mb-6">
 
         <input
           type="text"
@@ -328,6 +398,7 @@ export default function Produtos() {
           editarProduto
         }
       />
+
     </>
   );
 }
