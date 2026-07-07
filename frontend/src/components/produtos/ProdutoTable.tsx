@@ -71,7 +71,7 @@ export default function ProdutoTable({
 
               <tr
                 key={
-                  produto.codigo
+                  produto.id
                 }
                 className="border-b"
               >

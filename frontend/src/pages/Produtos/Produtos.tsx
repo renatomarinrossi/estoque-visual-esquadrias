@@ -53,6 +53,8 @@ export default function Produtos() {
           );
 
         return {
+          id: produto.id,
+
           codigo: produto.codigo,
 
           descricao:
@@ -104,10 +106,7 @@ export default function Produtos() {
       if (
         produtoEditando
       ) {
-        await atualizarProduto(
-          produtoEditando.codigo,
-          produto
-        );
+        await atualizarProduto(produto);
 
         setProdutoEditando(
           null
@@ -160,8 +159,8 @@ export default function Produtos() {
       );
 
       await excluirProdutoSupabase(
-        produto.codigo
-      );
+  produto.id!
+);
 
       await carregarDados();
 

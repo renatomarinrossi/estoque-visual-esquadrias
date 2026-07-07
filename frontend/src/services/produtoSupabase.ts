@@ -5,7 +5,9 @@ export async function buscarProdutos() {
   const { data, error } = await supabase
     .from("produtos")
     .select("*")
-    .order("codigo");
+    .order("id", {
+  ascending: true,
+});
 
   if (error) {
     console.error(error);
@@ -45,9 +47,16 @@ export async function inserirProduto(
 }
 
 export async function atualizarProduto(
-  codigoOriginal: string,
   produto: Produto
 ) {
+  console.log("ATUALIZAR PRODUTO:", produto);
+
+  if (!produto.id) {
+    throw new Error(
+      "Produto sem ID."
+    );
+  }
+
   const { error } = await supabase
     .from("produtos")
     .update({
@@ -65,7 +74,7 @@ export async function atualizarProduto(
       fornecedor_id:
         produto.fornecedorId || null,
     })
-    .eq("codigo", codigoOriginal);
+    .eq("id", produto.id);
 
   if (error) {
     console.error(error);
@@ -74,16 +83,17 @@ export async function atualizarProduto(
 }
 
 export async function registrarEntradaProduto(
-  codigo: string,
+  produtoId: number,
   quantidade: number,
   fornecedorId: number,
   precoCompra: number
 ) {
-  const { data: produto } = await supabase
-    .from("produtos")
-    .select("*")
-    .eq("codigo", codigo)
-    .single();
+  const { data: produto } =
+    await supabase
+      .from("produtos")
+      .select("*")
+      .eq("id", produtoId)
+      .single();
 
   if (!produto) {
     throw new Error(
@@ -94,18 +104,20 @@ export async function registrarEntradaProduto(
   const novaQuantidade =
     produto.quantidade + quantidade;
 
-  const { error } = await supabase
-    .from("produtos")
-    .update({
-      quantidade: novaQuantidade,
-      fornecedor_id:
-        fornecedorId,
-      preco_compra:
-        precoCompra,
-      ultima_entrada:
-        new Date().toISOString(),
-    })
-    .eq("codigo", codigo);
+  const { error } =
+    await supabase
+      .from("produtos")
+      .update({
+        quantidade:
+          novaQuantidade,
+        fornecedor_id:
+          fornecedorId,
+        preco_compra:
+          precoCompra,
+        ultima_entrada:
+          new Date().toISOString(),
+      })
+      .eq("id", produtoId);
 
   if (error) {
     console.error(error);
@@ -114,14 +126,15 @@ export async function registrarEntradaProduto(
 }
 
 export async function registrarSaidaProduto(
-  codigo: string,
+  produtoId: number,
   quantidade: number
 ) {
-  const { data: produto } = await supabase
-    .from("produtos")
-    .select("*")
-    .eq("codigo", codigo)
-    .single();
+  const { data: produto } =
+    await supabase
+      .from("produtos")
+      .select("*")
+      .eq("id", produtoId)
+      .single();
 
   if (!produto) {
     throw new Error(
@@ -130,7 +143,8 @@ export async function registrarSaidaProduto(
   }
 
   if (
-    produto.quantidade - quantidade <
+    produto.quantidade -
+      quantidade <
     0
   ) {
     throw new Error(
@@ -138,14 +152,15 @@ export async function registrarSaidaProduto(
     );
   }
 
-  const { error } = await supabase
-    .from("produtos")
-    .update({
-      quantidade:
-        produto.quantidade -
-        quantidade,
-    })
-    .eq("codigo", codigo);
+  const { error } =
+    await supabase
+      .from("produtos")
+      .update({
+        quantidade:
+          produto.quantidade -
+          quantidade,
+      })
+      .eq("id", produtoId);
 
   if (error) {
     console.error(error);
@@ -159,6 +174,8 @@ export async function moverParaLixeira(
   const { error } = await supabase
     .from("lixeira")
     .insert({
+      produto_id: produto.id,
+
       codigo: produto.codigo,
       descricao: produto.descricao,
       categoria: produto.categoria,
@@ -185,12 +202,12 @@ export async function moverParaLixeira(
 }
 
 export async function excluirProduto(
-  codigo: string
+  id: number
 ) {
   const { error } = await supabase
     .from("produtos")
     .delete()
-    .eq("codigo", codigo);
+    .eq("id", id);
 
   if (error) {
     console.error(error);
@@ -221,6 +238,8 @@ export async function restaurarProdutoLixeira(
     await supabase
       .from("produtos")
       .insert({
+        id: produto.produto_id,
+
         codigo: produto.codigo,
         descricao:
           produto.descricao,
@@ -261,6 +280,11 @@ export async function restaurarProdutoLixeira(
     );
     throw erroExcluir;
   }
+
+  // Atualiza a sequência da tabela produtos
+  await supabase.rpc(
+    "reset_produtos_sequence"
+  );
 }
 
 export async function excluirLixeira(

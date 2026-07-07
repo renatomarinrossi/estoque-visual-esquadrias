@@ -21,6 +21,7 @@ export default function ProdutoForm({
   const [produto, setProduto] =
     useState<Produto>(
       produtoInicial || {
+        id: undefined,
         codigo: "",
         descricao: "",
         categoria: "",
@@ -43,6 +44,26 @@ export default function ProdutoForm({
 
     carregarFornecedores();
   }, []);
+
+  // Atualiza o formulário sempre que um novo produto for selecionado
+  useEffect(() => {
+    if (produtoInicial) {
+      setProduto(produtoInicial);
+    } else {
+      setProduto({
+        id: undefined,
+        codigo: "",
+        descricao: "",
+        categoria: "",
+        unidade: "UN",
+        quantidade: 0,
+        estoqueMinimo: 0,
+        precoCompra: 0,
+        observacao: "",
+        fornecedorId: undefined,
+      });
+    }
+  }, [produtoInicial]);
 
   function salvar() {
     if (!produto.categoria) {
@@ -125,33 +146,13 @@ export default function ProdutoForm({
               Selecione
             </option>
 
-            <option>
-              Vidros
-            </option>
-
-            <option>
-              Alumínio
-            </option>
-
-            <option>
-              Acessórios
-            </option>
-
-            <option>
-              Ferramentas
-            </option>
-
-            <option>
-              Parafusos/Brocas
-            </option>
-
-            <option>
-              Silicone/PU
-            </option>
-
-            <option>
-              Borrachas
-            </option>
+            <option>Vidros</option>
+            <option>Alumínio</option>
+            <option>Acessórios</option>
+            <option>Ferramentas</option>
+            <option>Parafusos/Brocas</option>
+            <option>Silicone/PU</option>
+            <option>Borrachas</option>
           </select>
         </div>
 

@@ -11,8 +11,8 @@ export default function Saida() {
   const [produtos, setProdutos] =
     useState<any[]>([]);
 
-  const [codigo, setCodigo] =
-    useState("");
+  const [produtoId, setProdutoId] =
+    useState<number | null>(null);
 
   const [quantidade, setQuantidade] =
     useState("");
@@ -35,11 +35,11 @@ export default function Saida() {
 
   const produtoSelecionado =
     produtos.find(
-      (p) => p.codigo === codigo
+      (p) => p.id === produtoId
     );
 
   async function registrarSaida() {
-    if (!codigo) {
+    if (!produtoId) {
       alert(
         "Selecione um produto"
       );
@@ -48,7 +48,7 @@ export default function Saida() {
 
     try {
       await registrarSaidaProduto(
-        codigo,
+        produtoId,
         Number(quantidade)
       );
 
@@ -56,7 +56,7 @@ export default function Saida() {
         "Saída registrada"
       );
 
-      setCodigo("");
+      setProdutoId(null);
       setQuantidade("");
 
       await carregarProdutos();
@@ -85,8 +85,8 @@ export default function Saida() {
           <BuscaProduto
             produtos={produtos}
             onSelecionar={(produto) =>
-              setCodigo(
-                produto.codigo
+              setProdutoId(
+                produto.id
               )
             }
           />

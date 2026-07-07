@@ -16,8 +16,8 @@ export default function Entrada() {
   const [fornecedores, setFornecedores] =
     useState<any[]>([]);
 
-  const [codigo, setCodigo] =
-    useState("");
+  const [produtoId, setProdutoId] =
+  useState<number | null>(null);
 
   const [fornecedorId, setFornecedorId] =
     useState("");
@@ -52,9 +52,9 @@ export default function Entrada() {
   }, []);
 
   const produtoSelecionado =
-    produtos.find(
-      (p) => p.codigo === codigo
-    );
+  produtos.find(
+    (p) => p.id === produtoId
+  );
 
   useEffect(() => {
     if (!produtoSelecionado)
@@ -78,7 +78,7 @@ export default function Entrada() {
   }, [produtoSelecionado]);
 
   async function registrarEntrada() {
-    if (!codigo) {
+    if (!produtoId) {
       alert(
         "Selecione um produto"
       );
@@ -94,17 +94,17 @@ export default function Entrada() {
 
     try {
       await registrarEntradaProduto(
-        codigo,
-        Number(quantidade),
-        Number(fornecedorId),
-        Number(precoCompra)
-      );
+  produtoId,
+  Number(quantidade),
+  Number(fornecedorId),
+  Number(precoCompra)
+);
 
       alert(
         "Entrada registrada"
       );
 
-      setCodigo("");
+      setProdutoId(null);
       setFornecedorId("");
       setPrecoCompra("");
       setQuantidade("");
@@ -134,10 +134,10 @@ export default function Entrada() {
           <BuscaProduto
             produtos={produtos}
             onSelecionar={(produto) =>
-              setCodigo(
-                produto.codigo
-              )
-            }
+  setProdutoId(
+    produto.id
+  )
+}
           />
 
         </div>

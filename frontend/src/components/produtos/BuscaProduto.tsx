@@ -71,7 +71,7 @@ export default function BuscaProduto({
 
               <div
                 key={
-                  produto.codigo
+                  produto.id
                 }
                 onClick={() =>
                   selecionarProduto(

@@ -1,9 +1,11 @@
 export type Produto = {
+  id?: number;
+
   codigo: string;
 
   descricao: string;
 
-  categoria?: string;
+  categoria: string;
 
   unidade: string;
 
@@ -13,11 +15,9 @@ export type Produto = {
 
   precoCompra: number;
 
+  fornecedorId?: number | null;
+
   observacao: string;
 
-  fornecedorId?: number;
-
-  fornecedorNome?: string;
-
-  ultimaEntrada?: string;
+  ultimaEntrada?: string | null;
 };
