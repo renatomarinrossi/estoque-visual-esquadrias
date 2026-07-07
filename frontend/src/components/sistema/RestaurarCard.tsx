@@ -1,16 +1,27 @@
 import { useRef } from "react";
 
 type Props = {
-  onSelecionarArquivo: (file: File | null) => void;
-  onRestaurar: () => void;
+  onRestaurar: (arquivo: File) => void;
 };
 
 export default function RestaurarCard({
-  onSelecionarArquivo,
   onRestaurar,
 }: Props) {
   const inputRef =
     useRef<HTMLInputElement>(null);
+
+  function selecionarArquivo(
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const arquivo =
+      e.target.files?.[0];
+
+    if (!arquivo) return;
+
+    onRestaurar(arquivo);
+
+    e.target.value = "";
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6">
@@ -24,35 +35,20 @@ export default function RestaurarCard({
         type="file"
         accept=".json"
         className="hidden"
-        onChange={(e) =>
-          onSelecionarArquivo(
-            e.target.files?.[0] || null
-          )
-        }
+        onChange={selecionarArquivo}
       />
 
-      <div className="flex gap-3">
-
-        <button
-          onClick={() =>
-            inputRef.current?.click()
-          }
-          className="bg-gray-600 hover:bg-gray-700 text-white px-5 py-3 rounded-lg"
-        >
-          Selecionar Arquivo
-        </button>
-
-        <button
-          onClick={onRestaurar}
-          className="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg"
-        >
-          Restaurar Backup
-        </button>
-
-      </div>
+      <button
+        onClick={() =>
+          inputRef.current?.click()
+        }
+        className="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg"
+      >
+        Restaurar Backup
+      </button>
 
       <p className="text-sm text-gray-500 mt-4">
-        Apenas arquivos de backup (.json)
+        Selecione um arquivo de backup (.json)
       </p>
 
     </div>

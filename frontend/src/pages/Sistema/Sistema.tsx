@@ -15,14 +15,14 @@ import {
   fazerBackupCompleto,
 } from "../../services/backup/backupService";
 
+import {
+  lerArquivoBackup,
+} from "../../services/backup/restaurarBackup";
+
 import useUsuario from "../../hooks/useUsuario";
 
 export default function Sistema() {
-  const usuario =
-    useUsuario();
-
-  const [arquivoBackup, setArquivoBackup] =
-    useState<File | null>(null);
+  const usuario = useUsuario();
 
   const [
     ultimoBackup,
@@ -70,9 +70,7 @@ export default function Sistema() {
         "Backup realizado com sucesso!"
       );
     } catch (erro) {
-      console.error(
-        erro
-      );
+      console.error(erro);
 
       alert(
         "Erro ao gerar o backup."
@@ -80,17 +78,48 @@ export default function Sistema() {
     }
   }
 
-  function restaurarBackup() {
-    if (!arquivoBackup) {
-      alert(
-        "Selecione um arquivo de backup."
-      );
-      return;
-    }
+  async function restaurarBackup(
+    arquivo: File
+  ) {
+    try {
+      const backup =
+        await lerArquivoBackup(
+          arquivo
+        );
 
-    alert(
-      "A restauração será implementada em breve."
-    );
+      alert(
+        `Backup válido!
+
+Versão do Sistema:
+${backup.versaoSistema}
+
+Data:
+${new Date(
+  backup.dataBackup
+).toLocaleString("pt-BR")}
+
+Produtos:
+${backup.produtos.length}
+
+Fornecedores:
+${backup.fornecedores.length}
+
+Usuários:
+${backup.usuarios.length}
+
+Lixeira:
+${backup.lixeira.length}
+
+A restauração será implementada no próximo passo.`
+      );
+    } catch (erro: any) {
+      console.error(erro);
+
+      alert(
+        erro.message ??
+          "Arquivo de backup inválido."
+      );
+    }
   }
 
   return (
@@ -118,9 +147,6 @@ export default function Sistema() {
             />
 
             <RestaurarCard
-              onSelecionarArquivo={
-                setArquivoBackup
-              }
               onRestaurar={
                 restaurarBackup
               }

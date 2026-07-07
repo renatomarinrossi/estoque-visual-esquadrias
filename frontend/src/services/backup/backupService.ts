@@ -12,8 +12,11 @@ export async function fazerBackupCompleto() {
       empresa:
         "Visual Esquadrias",
 
-      versao:
-        backup.versao,
+      versaoSistema:
+        backup.versaoSistema,
+
+      backupVersion:
+        backup.backupVersion,
 
       dataBackup:
         backup.dataBackup,
@@ -23,6 +26,9 @@ export async function fazerBackupCompleto() {
 
       fornecedores:
         backup.fornecedores,
+
+      usuarios:
+        backup.usuarios,
 
       lixeira:
         backup.lixeira,

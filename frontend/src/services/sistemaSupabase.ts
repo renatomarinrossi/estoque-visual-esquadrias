@@ -1,10 +1,12 @@
 import { supabase } from "./supabase";
 
 export async function gerarBackup() {
-  const { data: produtos, error: erroProdutos } =
-    await supabase
-      .from("produtos")
-      .select("*");
+  const {
+    data: produtos,
+    error: erroProdutos,
+  } = await supabase
+    .from("produtos")
+    .select("*");
 
   if (erroProdutos) throw erroProdutos;
 
@@ -18,15 +20,30 @@ export async function gerarBackup() {
   if (erroFornecedores)
     throw erroFornecedores;
 
-  const { data: lixeira, error: erroLixeira } =
-    await supabase
-      .from("lixeira")
-      .select("*");
+  const {
+    data: usuarios,
+    error: erroUsuarios,
+  } = await supabase
+    .from("usuarios")
+    .select("*");
 
-  if (erroLixeira) throw erroLixeira;
+  if (erroUsuarios)
+    throw erroUsuarios;
+
+  const {
+    data: lixeira,
+    error: erroLixeira,
+  } = await supabase
+    .from("lixeira")
+    .select("*");
+
+  if (erroLixeira)
+    throw erroLixeira;
 
   return {
-    versao: "2.0.0",
+    versaoSistema: "2.0.0",
+
+    backupVersion: 1,
 
     dataBackup:
       new Date().toISOString(),
@@ -35,9 +52,12 @@ export async function gerarBackup() {
 
     fornecedores,
 
+    usuarios,
+
     lixeira,
   };
 }
+
 export async function verificarBanco() {
   const { error } = await supabase
     .from("produtos")
