@@ -1,21 +1,33 @@
 # Controle de Estoque - Visual Esquadrias
 
-Versão: 1.0.0
+## Versão
 
-Última atualização: Julho/2026
+**2.0.0**
+
+Última atualização:
+
+**06/07/2026**
 
 ---
 
 # Tecnologias Utilizadas
 
-- React 19
+- React
 - TypeScript
 - Vite
 - Tailwind CSS
+- React Router DOM
 - Supabase
 - jsPDF
 - jspdf-autotable
+- html2canvas
 - Vercel
+
+---
+
+# Objetivo
+
+Sistema desenvolvido para controle de estoque da Visual Esquadrias, permitindo o gerenciamento completo de produtos, fornecedores, compras, movimentações, usuários e permissões de acesso.
 
 ---
 
@@ -25,13 +37,20 @@ Versão: 1.0.0
 
 Indicadores:
 
+- Valor total do estoque
 - Total de produtos
 - Produtos com estoque baixo
-- Sistema Online
+- Total de fornecedores
+
+Funcionalidades:
+
+- Atualização automática
+- Cálculo do valor do estoque
+- Ocultação do valor do estoque para Operadores
 
 ---
 
-# Produtos
+## Produtos
 
 Cadastro completo de produtos.
 
@@ -42,10 +61,11 @@ Campos:
 - Categoria
 - Unidade
 - Quantidade
-- Estoque Mínimo
-- Preço de Compra
-- Fornecedor Padrão
+- Estoque mínimo
+- Preço de compra
+- Fornecedor padrão
 - Observações
+- Última entrada
 
 Categorias:
 
@@ -61,16 +81,17 @@ Funcionalidades:
 
 - Cadastro
 - Edição
-- Exclusão para Lixeira
+- Exclusão para lixeira
 - Pesquisa por código
 - Pesquisa por descrição
+- Busca inteligente
 - Filtro por categoria
 - Exibição do último fornecedor
 - Exibição da última entrada
 
 ---
 
-# Fornecedores
+## Fornecedores
 
 Cadastro completo de fornecedores.
 
@@ -102,88 +123,181 @@ Funcionalidades:
 - Cadastro
 - Edição
 - Exclusão
-- Filtro por categoria
-- Visualização detalhada do fornecedor através de expansão da linha
-- Componentização da tela
+- Pesquisa
 
 ---
 
-# Entrada de Estoque
+## Entrada de Estoque
 
 Funcionalidades:
 
 - Busca inteligente por descrição
-- Seleção rápida de produto
+- Seleção rápida do produto
 - Atualização automática do estoque
 - Atualização automática do fornecedor
 - Atualização automática do preço de compra
 - Atualização automática da última entrada
 
-Componente utilizado:
-
-src/components/produtos/BuscaProduto.tsx
-
 ---
 
-# Saída de Estoque
+## Saída de Estoque
 
 Funcionalidades:
 
 - Busca inteligente por descrição
-- Seleção rápida de produto
+- Seleção rápida do produto
 - Baixa automática do estoque
 - Validação de estoque insuficiente
 
-Componente utilizado:
-
-src/components/produtos/BuscaProduto.tsx
-
 ---
 
-# Compras
+## Compras
 
 Lista automática de produtos abaixo do estoque mínimo.
 
 Cálculo:
 
-Quantidade a Comprar =
-Estoque Mínimo - Estoque Atual
+Quantidade a comprar =
+
+Estoque mínimo - Estoque atual
 
 Funcionalidades:
 
-- Lista automática
-- Filtro por categoria
 - Separação por categoria
-- Geração de PDF
-- Exportação da lista de compras
-
-Categorias:
-
-- Vidros
-- Alumínio
-- Acessórios
-- Ferramentas
-- Parafusos/Brocas
-- Silicone/PU
-- Borrachas
+- Filtro por categoria
+- Exportação para PDF
+- Lista automática de compras
 
 ---
 
-# Lixeira
+## Lixeira
 
 Funcionalidades:
 
 - Armazenamento de produtos excluídos
-- Restauração de produtos
+- Restauração
 - Exclusão definitiva
+
+---
+
+## Sistema
+
+Módulo administrativo.
+
+Informações exibidas:
+
+- Status do banco
+- Último backup
+- Versão do sistema
+- Última atualização
+
+Funcionalidades:
+
+- Backup completo do sistema
+- Download do backup em JSON
+- Restauração de backup (estrutura preparada)
+
+Acesso:
+
+- Desenvolvedor
+
+---
+
+## Usuários
+
+Controle completo dos usuários do sistema.
+
+Campos:
+
+- Nome
+- Login
+- Senha
+- Perfil
+- Status
+
+Funcionalidades:
+
+- Cadastro
+- Edição
+- Ativar usuário
+- Inativar usuário
+- Controle de perfis
+- Login integrado
+- Logout
+- Sessão persistente
+
+---
+
+# Controle de Permissões
+
+## Desenvolvedor
+
+Possui acesso total.
+
+Pode acessar:
+
+- Dashboard
+- Produtos
+- Entrada
+- Saída
+- Compras
+- Fornecedores
+- Lixeira
+- Sistema
+- Usuários
+- Backup
+- Restaurar Backup
+
+---
+
+## Gerencial
+
+Pode acessar:
+
+- Dashboard
+- Produtos
+- Entrada
+- Saída
+- Compras
+- Fornecedores
+- Lixeira
+- Sistema
+
+Restrições:
+
+- Não possui acesso ao Backup
+- Não possui acesso ao Restaurar Backup
+- Não possui acesso ao módulo Usuários
+
+---
+
+## Operador
+
+Pode acessar:
+
+- Dashboard
+- Produtos
+- Entrada
+- Saída
+- Compras
+- Fornecedores
+- Lixeira
+
+Restrições:
+
+- Não visualiza o valor total do estoque
+- Não possui acesso ao Sistema
+- Não possui acesso ao módulo Usuários
+- Não possui acesso ao Backup
+- Não possui acesso ao Restaurar Backup
 
 ---
 
 # Banco de Dados
 
-## Tabela produtos
+## produtos
 
-Campos:
+Campos principais:
 
 - codigo
 - descricao
@@ -192,15 +306,15 @@ Campos:
 - quantidade
 - estoque_minimo
 - preco_compra
-- observacao
 - fornecedor_id
+- observacao
 - ultima_entrada
 
 ---
 
-## Tabela fornecedores
+## fornecedores
 
-Campos:
+Campos principais:
 
 - id
 - razao_social
@@ -216,7 +330,26 @@ Campos:
 
 ---
 
-## Tabela lixeira
+## usuarios
+
+Campos:
+
+- id
+- nome
+- login
+- senha
+- perfil
+- ativo
+
+Perfis:
+
+- DESENVOLVEDOR
+- GERENCIAL
+- OPERADOR
+
+---
+
+## lixeira
 
 Campos:
 
@@ -227,80 +360,181 @@ Campos:
 - quantidade
 - estoque_minimo
 - preco_compra
-- observacao
 - fornecedor_id
+- observacao
 - ultima_entrada
 - data_exclusao
 
 ---
 
-# Componentes
+# Segurança
 
-## Produtos
+Implementações:
 
-### BuscaProduto
-
-Arquivo:
-
-src/components/produtos/BuscaProduto.tsx
-
-Responsável por:
-
-- Pesquisa inteligente por descrição
-- Lista dinâmica de resultados
-- Seleção rápida de produtos
-- Reutilizado em Entrada e Saída
+- Login por usuário
+- Controle de sessão
+- Logout
+- Rotas protegidas
+- Controle de permissões
+- Ocultação automática de menus
+- Usuário não pode inativar a própria conta
 
 ---
 
-## Fornecedores
+# Estrutura do Projeto
 
-### FornecedorForm
+## Pages
 
-Arquivo:
+```
+pages/
 
-src/components/fornecedores/FornecedorForm.tsx
+Dashboard
+Produtos
+Entrada
+Saída
+Compras
+Fornecedores
+Lixeira
+Sistema
+Usuários
+Login
+```
+
+---
+
+## Components
+
+```
+components/
+
+dashboard
+produtos
+fornecedores
+usuarios
+sistema
+auth
+layout
+common
+ui
+```
+
+---
+
+## Hooks
+
+```
+hooks/
+
+useUsuario.ts
+```
+
+---
+
+## Services
+
+```
+services/
+
+produtoSupabase.ts
+fornecedorSupabase.ts
+usuarioSupabase.ts
+sistemaSupabase.ts
+backup/
+```
+
+---
+
+## Types
+
+```
+types/
+
+produto.ts
+fornecedor.ts
+usuario.ts
+```
+
+---
+
+## Config
+
+```
+config/
+
+system.ts
+```
+
+---
+
+# Componentes Desenvolvidos
+
+## BuscaProduto
+
+Responsável por:
+
+- Pesquisa inteligente
+- Reutilização em Entrada e Saída
+
+---
+
+## ProtectedRoute
+
+Responsável por:
+
+- Proteger rotas
+- Validar perfil do usuário
+- Bloquear acessos não autorizados
+
+---
+
+## UsuarioForm
 
 Responsável por:
 
 - Cadastro
+- Edição de usuários
+
+---
+
+## UsuarioTable
+
+Responsável por:
+
+- Listagem
+- Ativação
+- Inativação
 - Edição
-- Validação dos dados do fornecedor
 
 ---
 
-### FornecedorTable
-
-Arquivo:
-
-src/components/fornecedores/FornecedorTable.tsx
+## BackupCard
 
 Responsável por:
 
-- Listagem dos fornecedores
-- Botões Editar e Excluir
-- Expansão dos detalhes
+- Execução do backup
 
 ---
 
-### FornecedorDetalhes
+## RestaurarCard
 
-Arquivo:
+Estrutura preparada para futura restauração.
 
-src/components/fornecedores/FornecedorDetalhes.tsx
+---
+
+## BancoCard
 
 Responsável por:
 
-- Exibição completa dos dados do fornecedor
-- Razão Social
-- Categoria
-- Contato
-- Telefone
-- WhatsApp
-- Email
-- Cidade
-- Estado
-- Observações
+- Mostrar status do banco
+
+---
+
+## InformacoesCard
+
+Responsável por:
+
+- Exibir versão
+- Última atualização
 
 ---
 
@@ -308,98 +542,111 @@ Responsável por:
 
 ## Sprint 01
 
-- Estrutura inicial do projeto
-- Integração com Supabase
-- Cadastro de produtos
+- Estrutura inicial
+- React
+- Vite
+- Supabase
+
+---
 
 ## Sprint 02
 
-- Cadastro de fornecedores
+- Produtos
+
+---
 
 ## Sprint 03
 
-- Entrada de estoque
+- Entrada
+
+---
 
 ## Sprint 04
 
-- Saída de estoque
+- Saída
+
+---
 
 ## Sprint 05
 
 - Dashboard
 
+---
+
 ## Sprint 06
 
 - Lixeira
+
+---
 
 ## Sprint 07
 
 - Último fornecedor
 - Última entrada
 
+---
+
 ## Sprint 08
 
-- Categorias de produtos
-
-## Sprint 09
-
-- Lista de Compras
-- Geração de PDF da Lista de Compras
-
-## Sprint 10
-
-- Busca inteligente por descrição
-- Componente BuscaProduto
-- Busca reutilizada em Entrada e Saída
-- Filtro por categoria em Produtos
-- Inclusão da categoria Borrachas
-
-## Sprint 11
-
-Refatoração completa da tela de Fornecedores.
-
-Componentização da tela:
-
-- FornecedorForm
-- FornecedorTable
-- FornecedorDetalhes
-
-Melhorias:
-
-- Código organizado
-- Componentes reutilizáveis
-- Expansão dos detalhes do fornecedor
-- Preparação da arquitetura para futuras evoluções
+- Categorias
 
 ---
 
-# Estrutura Atual do Projeto
+## Sprint 09
 
-```
-src/
+- Compras
+- PDF
 
-components/
-│
-├── produtos/
-│   ├── ProdutoForm.tsx
-│   ├── ProdutoTable.tsx
-│   └── BuscaProduto.tsx
-│
-├── fornecedores/
-│   ├── FornecedorForm.tsx
-│   ├── FornecedorTable.tsx
-│   └── FornecedorDetalhes.tsx
-│
-pages/
-│
-├── Dashboard
-├── Produtos
-├── Fornecedores
-├── Entrada
-├── Saída
-├── Compras
-└── Lixeira
-```
+---
+
+## Sprint 10
+
+- Busca inteligente
+- BuscaProduto reutilizável
+
+---
+
+## Sprint 11
+
+- Sistema
+- Informações
+- Status do banco
+
+---
+
+## Sprint 12
+
+- Backup completo
+- Exportação JSON
+
+---
+
+## Sprint 13
+
+- Controle de versão
+- Melhorias gerais
+
+---
+
+## Sprint 14
+
+- Login
+- Sessão
+- Controle de acesso
+
+---
+
+## Sprint 15
+
+- Controle de usuários
+- Perfis
+- Desenvolvedor
+- Gerencial
+- Operador
+- ProtectedRoute
+- Controle de permissões
+- Menu dinâmico
+- Usuário não pode inativar a própria conta
 
 ---
 
@@ -414,62 +661,47 @@ pages/
 - Saída
 - Compras
 - Lixeira
+- Sistema
+- Backup
+- Login
+- Controle de usuários
+- Controle de permissões
+- Sessão
+- Rotas protegidas
 
 ---
 
 # Próximas Melhorias
 
-Planejamento atual:
-
-- PDF da tela Produtos
+- Restauração de backup
+- Alteração de senha
+- Impedir duplicidade de login
+- Garantir pelo menos um Desenvolvedor ativo
 - Histórico de movimentações
-- Relatório de Entradas
-- Relatório de Saídas
-- Relatório por Fornecedor
-- Controle de usuários
-- Perfis de acesso
-- Backup automático
-- Auditoria de alterações
-- Indicadores financeiros
-- Dashboard avançado
+- Relatórios
+- Auditoria
+- Logs
+- Backup automático agendado
+- Dashboard analítico
+- Recuperação de senha
+- Integração com autenticação nativa do Supabase
 
 ---
 
 # Deploy
 
-Frontend
+Hospedagem:
 
 - Vercel
 
-Banco de Dados
+Banco de Dados:
 
 - Supabase
 
 ---
 
-# Objetivo do Sistema
-
-Sistema desenvolvido para uso interno da Visual Esquadrias.
-
-Objetivos:
-
-- Controlar estoque
-- Controlar fornecedores
-- Controlar compras
-- Registrar entradas e saídas
-- Organizar reposições
-- Facilitar consultas rápidas
-- Manter simplicidade e rapidez no uso
-
----
-
 # Observações
 
-O sistema foi desenvolvido priorizando:
+Sistema desenvolvido exclusivamente para uso interno da Visual Esquadrias.
 
-- Simplicidade
-- Facilidade de utilização
-- Componentização do código
-- Reutilização de componentes
-- Facilidade de manutenção
-- Escalabilidade para futuras funcionalidades
+Projeto iniciado com foco em simplicidade, rapidez e segurança, evoluindo para uma plataforma completa de gestão de estoque, fornecedores, compras, usuários e controle de acesso por perfis.
