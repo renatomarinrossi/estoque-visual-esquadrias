@@ -1,718 +1,562 @@
-# Controle de Estoque - Visual Esquadrias
+# DOCUMENTAÇÃO DO SISTEMA
+# Visual Esquadrias
 
-# Documentação Oficial do Sistema
-
----
-
-# Versão
-
-**2.1.0**
+Versão: 2.1.0
 
 Última atualização:
-
-**06/07/2026**
+Julho/2026
 
 ---
 
 # Objetivo
 
-Sistema desenvolvido exclusivamente para uso interno da Visual Esquadrias, com foco em simplicidade, rapidez, segurança e controle completo do estoque.
+O Visual Esquadrias é um sistema simples de controle de estoque desenvolvido para substituir planilhas de Excel.
+
+O foco do sistema é:
+
+- simplicidade;
+- rapidez;
+- segurança dos dados;
+- funcionamento em nuvem através do Supabase.
+
+Todo o desenvolvimento é voltado para uma pequena empresa, evitando funcionalidades desnecessárias de um ERP.
 
 ---
 
 # Tecnologias
 
-- React
+Frontend
+
+- React 19
 - TypeScript
 - Vite
 - Tailwind CSS
-- React Router DOM
+
+Backend
+
 - Supabase
-- jsPDF
-- jspdf-autotable
-- html2canvas
+
+Banco de Dados
+
+- PostgreSQL
+
+Hospedagem
+
 - Vercel
+
+Controle de versão
+
+- Git
+- GitHub
+
+---
+
+# Estrutura do Banco
+
+## produtos
+
+Campos
+
+id (BIGINT - Identity)
+
+codigo
+
+descricao
+
+categoria
+
+unidade
+
+quantidade
+
+estoque_minimo
+
+preco_compra
+
+observacao
+
+fornecedor_id
+
+ultima_entrada
+
+---
+
+## fornecedores
+
+id
+
+razao_social
+
+nome_fantasia
+
+categoria
+
+contato
+
+telefone
+
+whatsapp
+
+email
+
+cidade
+
+estado
+
+observacoes
+
+created_at
+
+---
+
+## usuarios
+
+id
+
+nome
+
+login
+
+senha
+
+---
+
+## lixeira
+
+id
+
+produto_id
+
+codigo
+
+descricao
+
+categoria
+
+unidade
+
+quantidade
+
+estoque_minimo
+
+preco_compra
+
+observacao
+
+fornecedor_id
+
+ultima_entrada
+
+data_exclusao
+
+---
+
+# Arquitetura
+
+O sistema NÃO utiliza mais o código do produto como identificador interno.
+
+Toda operação é feita através do campo
+
+id
+
+O código passou a ser apenas uma informação visual.
+
+Isso permite produtos com códigos repetidos.
+
+Exemplo
+
+CON449
+Branco
+
+CON449
+Preto
+
+São produtos independentes.
+
+---
+
+# Funcionalidades
+
+## Dashboard
+
+Exibe
+
+Quantidade de produtos
+
+Itens abaixo do estoque mínimo
+
+Quantidade de fornecedores
+
+Itens na lixeira
+
+---
+
+## Produtos
+
+Cadastrar produto
+
+Editar produto
+
+Excluir produto
+
+Enviar para lixeira
+
+Pesquisa
+
+Filtro por categoria
+
+Relatório PDF
+
+Ordenação por ordem de cadastro
+
+---
+
+## Entrada
+
+Pesquisar produto
+
+Atualizar estoque
+
+Atualizar fornecedor
+
+Atualizar preço de compra
+
+Atualizar última entrada
+
+Operação realizada por ID
+
+---
+
+## Saída
+
+Pesquisar produto
+
+Baixar estoque
+
+Impedir estoque negativo
+
+Operação realizada por ID
+
+---
+
+## Compras
+
+Lista automática de itens abaixo do estoque mínimo
+
+Filtro por categoria
+
+Relatório PDF
+
+---
+
+## Fornecedores
+
+Cadastro
+
+Edição
+
+Exclusão
+
+Pesquisa
+
+---
+
+## Usuários
+
+Cadastro
+
+Login
+
+Controle básico de acesso
+
+---
+
+## Sistema
+
+Backup
+
+Restauração
+
+---
+
+## Lixeira
+
+Enviar produto excluído
+
+Restaurar
+
+Excluir definitivamente
+
+Mantém o ID original do produto através do campo produto_id
+
+---
+
+# Regras do Sistema
+
+Nunca permitir estoque negativo.
+
+Não permitir edição simultânea de produtos iguais.
+
+Permitir códigos repetidos.
+
+Toda identificação interna utiliza ID.
+
+Código serve apenas para exibição.
+
+---
+
+# Fluxo de Exclusão
+
+Produto
+
+↓
+
+Lixeira
+
+↓
+
+Produto removido da tabela produtos
+
+↓
+
+Produto preservado na lixeira
+
+↓
+
+Restauração
+
+↓
+
+Produto retorna utilizando o ID original.
+
+---
+
+# Fluxo de Entrada
+
+Seleciona produto
+
+↓
+
+Seleciona fornecedor
+
+↓
+
+Informa quantidade
+
+↓
+
+Atualiza estoque
+
+↓
+
+Atualiza fornecedor
+
+↓
+
+Atualiza preço
+
+↓
+
+Atualiza data da última entrada
+
+---
+
+# Fluxo de Saída
+
+Seleciona produto
+
+↓
+
+Informa quantidade
+
+↓
+
+Verifica estoque
+
+↓
+
+Atualiza quantidade
+
+---
+
+# Backup
+
+Objetivo
+
+Permitir recuperar o sistema exatamente como estava.
+
+Estratégia
+
+Backup completo das tabelas
+
+produtos
+
+fornecedores
+
+usuarios
+
+lixeira
+
+Mantendo
+
+IDs
+
+datas
+
+fornecedores
+
+preços
+
+estoques
+
+observações
 
 ---
 
 # Estrutura do Projeto
 
-```
 src/
 
 components/
-config/
-hooks/
+
 pages/
+
 services/
+
+hooks/
+
+layouts/
+
 types/
 
-App.tsx
-main.tsx
-```
+assets/
 
 ---
 
-# Pages
+# Arquivos principais
 
-```
-Dashboard
+ProdutoForm.tsx
 
-Produtos
+ProdutoTable.tsx
 
-Entrada
+BuscaProduto.tsx
 
-Saída
+Produtos.tsx
 
-Compras
+Entrada.tsx
 
-Fornecedores
+Saida.tsx
 
-Lixeira
+Compras.tsx
 
-Sistema
-
-Usuários
-
-Login
-```
-
----
-
-# Components
-
-```
-dashboard/
-
-produtos/
-
-fornecedores/
-
-usuarios/
-
-sistema/
-
-layout/
-
-auth/
-
-common/
-
-ui/
-```
-
----
-
-# Hooks
-
-```
-useUsuario.ts
-```
-
----
-
-# Services
-
-```
 produtoSupabase.ts
 
 fornecedorSupabase.ts
 
 usuarioSupabase.ts
 
-sistemaSupabase.ts
+---
 
-backup/
+# Melhorias já implementadas
 
-backupService.ts
+Migração completa para utilização de ID.
 
-restaurarBackup.ts
-```
+Correção de produtos com códigos repetidos.
+
+Correção da edição.
+
+Correção da exclusão.
+
+Correção da entrada.
+
+Correção da saída.
+
+Correção das keys do React.
+
+Ordenação por ordem de cadastro.
+
+Lixeira preparada para preservar o ID original.
 
 ---
 
-# Banco de Dados
+# Melhorias futuras
 
-## produtos
+Backup completo em arquivo JSON.
 
-Campos
+Restauração completa do sistema.
 
-- codigo
-- descricao
-- categoria
-- unidade
-- quantidade
-- estoque_minimo
-- preco_compra
-- fornecedor_id
-- observacao
-- ultima_entrada
-- created_at
+Logs de movimentação.
 
----
+Histórico de alterações.
 
-## fornecedores
+Controle de permissões.
 
-Campos
+Importação de produtos.
 
-- id
-- razao_social
-- nome_fantasia
-- categoria
-- contato
-- telefone
-- whatsapp
-- email
-- cidade
-- estado
-- observacoes
-- created_at
+Exportação para Excel.
+
+Controle de inventário.
+
+Controle de compras.
+
+Controle de pedidos.
+
+Relatórios gerenciais.
+
+Dashboard avançado.
 
 ---
 
-## usuarios
+# Convenções
 
-Campos
+Nunca utilizar codigo para localizar registros.
 
-- id
-- nome
-- login
-- senha
-- perfil
-- ativo
-- created_at
+Sempre utilizar id.
+
+Toda tabela deverá possuir campo id.
+
+Todo relacionamento deverá utilizar IDs.
 
 ---
 
-## lixeira
+# Versionamento
 
-Campos
+2.0
 
-- id
-- codigo
-- descricao
-- categoria
-- unidade
-- quantidade
-- estoque_minimo
-- preco_compra
-- fornecedor_id
-- observacao
-- ultima_entrada
-- data_exclusao
-- created_at
+Sistema funcionando.
 
----
+2.1
 
-# Dashboard
+Migração completa para identificação por ID.
 
-Exibe
+Correção de produtos duplicados.
 
-- Valor total do estoque
-- Total de produtos
-- Produtos com estoque baixo
-- Total de fornecedores
+Correção de entrada.
 
-Atualização automática.
+Correção de saída.
 
-Operadores não visualizam o valor do estoque.
+Correção de exclusão.
+
+Correção da lixeira.
 
 ---
 
-# Produtos
+# Repositório
 
-Cadastro completo.
+GitHub
 
-Campos
-
-- Código
-- Descrição
-- Categoria
-- Unidade
-- Quantidade
-- Estoque mínimo
-- Preço de compra
-- Fornecedor
-- Observação
-- Última entrada
-
-Funcionalidades
-
-- Cadastro
-- Edição
-- Exclusão
-- Pesquisa
-- Busca inteligente
-- Filtro por categoria
-- Último fornecedor
-- Última entrada
-
----
-
-# Fornecedores
-
-Cadastro completo.
-
-Campos
-
-- Razão Social
-- Nome Fantasia
-- Categoria
-- Contato
-- Telefone
-- WhatsApp
-- Email
-- Cidade
-- Estado
-- Observações
-
-Funcionalidades
-
-- Cadastro
-- Edição
-- Exclusão
-- Pesquisa
-
----
-
-# Entrada de Estoque
-
-Funcionalidades
-
-- Busca inteligente
-- Atualização automática do estoque
-- Atualização automática do fornecedor
-- Atualização automática do preço
-- Atualização da última entrada
-
----
-
-# Saída de Estoque
-
-Funcionalidades
-
-- Busca inteligente
-- Baixa automática
-- Validação de estoque insuficiente
-
----
-
-# Compras
-
-Lista automática dos produtos abaixo do mínimo.
-
-Cálculo
-
-```
-Quantidade para comprar
-
-=
-
-Estoque mínimo
-
--
-
-Quantidade atual
-```
-
-Exportação
-
-- PDF
-
-Filtros
-
-- Categoria
-
----
-
-# Lixeira
-
-Funcionalidades
-
-- Exclusão lógica
-- Restauração
-- Exclusão definitiva
-
----
-
-# Sistema
-
-Exibe
-
-- Status do banco
-- Último backup
-- Versão
-- Última atualização
-
----
-
-# Backup
-
-## Implementado
-
-Backup completo em JSON.
-
-O backup salva:
-
-- Produtos
-- Fornecedores
-- Usuários
-- Lixeira
-
-Informações adicionais
-
-- Sistema
-- Empresa
-- Versão do sistema
-- Backup Version
-- Data do backup
-
-Formato
-
-```json
-{
-  "sistema": "...",
-  "empresa": "...",
-  "versaoSistema": "...",
-  "backupVersion": 1,
-  "dataBackup": "...",
-
-  "produtos": [],
-  "fornecedores": [],
-  "usuarios": [],
-  "lixeira": []
-}
-```
-
----
-
-## Recuperação
-
-Estrutura preparada.
-
-Ainda não implementada.
-
----
-
-# Usuários
-
-Perfis
-
-## Desenvolvedor
-
-Acesso total.
-
-Pode acessar
-
-- Dashboard
-- Produtos
-- Entrada
-- Saída
-- Compras
-- Fornecedores
-- Lixeira
-- Sistema
-- Usuários
-- Backup
-
-Também pode visualizar a senha dos usuários através do botão de exibição.
-
----
-
-## Gerencial
-
-Pode acessar
-
-- Dashboard
-- Produtos
-- Entrada
-- Saída
-- Compras
-- Fornecedores
-- Lixeira
-- Sistema
-
-Não possui acesso
-
-- Usuários
-- Backup
-- Recuperação
-
----
-
-## Operador
-
-Pode acessar
-
-- Dashboard
-- Produtos
-- Entrada
-- Saída
-- Compras
-- Fornecedores
-- Lixeira
-
-Não possui acesso
-
-- Sistema
-- Usuários
-- Backup
-
-Não visualiza
-
-- Valor total do estoque
-
----
-
-# Segurança
-
-Implementado
-
-- Login
-- Logout
-- Sessão persistente
-- Controle de perfis
-- Rotas protegidas
-- Menu dinâmico
-- Controle de permissões
-- Usuário não pode inativar a própria conta
-
----
-
-# Componentes Principais
-
-## BuscaProduto
-
-Busca inteligente reutilizada.
-
----
-
-## ProtectedRoute
-
-Controle de acesso.
-
----
-
-## UsuarioForm
-
-Cadastro e edição.
-
----
-
-## UsuarioTable
-
-Listagem dos usuários.
-
-Funcionalidades
-
-- Editar
-- Ativar
-- Inativar
-- Visualização da senha (somente Desenvolvedor)
-
----
-
-## BackupCard
-
-Geração do backup.
-
----
-
-## RestaurarCard
-
-Estrutura preparada para futura recuperação do backup.
-
----
-
-## BancoCard
-
-Status do banco.
-
----
-
-## InformacoesCard
-
-Versão do sistema.
-
-Última atualização.
-
----
-
-# Histórico de Desenvolvimento
-
-Sprint 01
-
-Estrutura inicial
-
----
-
-Sprint 02
-
-Produtos
-
----
-
-Sprint 03
-
-Entrada
-
----
-
-Sprint 04
-
-Saída
-
----
-
-Sprint 05
-
-Dashboard
-
----
-
-Sprint 06
-
-Lixeira
-
----
-
-Sprint 07
-
-Último fornecedor
-
-Última entrada
-
----
-
-Sprint 08
-
-Categorias
-
----
-
-Sprint 09
-
-Compras
-
-PDF
-
----
-
-Sprint 10
-
-Busca inteligente
-
-BuscaProduto reutilizável
-
----
-
-Sprint 11
-
-Sistema
-
-Status do banco
-
----
-
-Sprint 12
-
-Backup JSON
-
----
-
-Sprint 13
-
-Controle de versão
-
----
-
-Sprint 14
-
-Login
-
-Sessão
-
-Permissões
-
----
-
-Sprint 15
-
-Usuários
-
-Perfis
-
-ProtectedRoute
-
-Menu dinâmico
-
----
-
-Sprint 16
-
-Backup completo
-
-Backup com usuários
-
-Versionamento do backup
-
-Visualização da senha para Desenvolvedor
-
-Preparação para futura recuperação de backup
-
----
-
-# Status Atual
-
-## Funcionando
-
-- Login
-- Dashboard
-- Produtos
-- Fornecedores
-- Entrada
-- Saída
-- Compras
-- Lixeira
-- Sistema
-- Usuários
-- Backup
-- Controle de permissões
-- Sessão persistente
-
----
-
-# Pendências
-
-- Recuperação de backup
-- Alteração de senha
-- Recuperação de senha
-- Logs
-- Auditoria
-- Histórico de movimentações
-- Dashboard analítico
-- Relatórios
-- Backup automático
-- Autenticação nativa do Supabase
+renatomarinrossi/estoque-visual-esquadrias
 
 ---
 
 # Deploy
 
-Frontend
-
 Vercel
 
-Banco
-
-Supabase
+Deploy automático a cada git push.
 
 ---
 
-# Observações
+# Objetivo Final
 
-Sistema desenvolvido exclusivamente para uso interno da Visual Esquadrias.
-
-Projeto focado em simplicidade, organização e controle completo do estoque.
-
-Todo o desenvolvimento é versionado através de Git e hospedado no GitHub, com deploy automático pela Vercel.
+Manter um sistema simples, rápido, seguro e fácil de utilizar, substituindo totalmente as planilhas de estoque, preservando a integridade dos dados e permitindo evolução contínua sem perder a simplicidade.
