@@ -17,24 +17,29 @@ import Compras from "./pages/Compras/Compras";
 import Fornecedores from "./pages/Fornecedores/Fornecedores";
 import Lixeira from "./pages/Lixeira/Lixeira";
 import Sistema from "./pages/Sistema/Sistema";
+import Usuarios from "./pages/Usuarios/Usuarios";
 import Login from "./pages/Login/Login";
+
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   const [carregando, setCarregando] =
     useState(true);
 
-  const [logado, setLogado] =
-    useState(false);
+  const [usuario, setUsuario] =
+    useState<any>(null);
 
   useEffect(() => {
-    const sessaoLocal =
+    const usuarioSalvo =
       sessionStorage.getItem(
-        "visual_logado"
+        "visual_usuario"
       );
 
-    setLogado(
-      sessaoLocal === "true"
-    );
+    if (usuarioSalvo) {
+      setUsuario(
+        JSON.parse(usuarioSalvo)
+      );
+    }
 
     setCarregando(false);
   }, []);
@@ -47,7 +52,7 @@ function App() {
     );
   }
 
-  if (!logado) {
+  if (!usuario) {
     return <Login />;
   }
 
@@ -109,6 +114,17 @@ function App() {
           <Route
             path="sistema"
             element={<Sistema />}
+          />
+
+          <Route
+            path="usuarios"
+            element={
+              <ProtectedRoute
+                perfil="DESENVOLVEDOR"
+              >
+                <Usuarios />
+              </ProtectedRoute>
+            }
           />
 
         </Route>

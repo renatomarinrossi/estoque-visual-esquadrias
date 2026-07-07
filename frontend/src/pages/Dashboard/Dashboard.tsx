@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 
+import useUsuario from "../../hooks/useUsuario";
+
 import { buscarProdutos } from "../../services/produtoSupabase";
 import { buscarFornecedores } from "../../services/fornecedorSupabase";
 
 export default function Dashboard() {
+  const usuario =
+    useUsuario();
+
   const [totalProdutos, setTotalProdutos] =
     useState(0);
 
@@ -73,23 +78,30 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-4 gap-6">
 
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="text-gray-500">
-            Valor do Estoque
-          </div>
+        {usuario?.perfil !==
+          "OPERADOR" && (
+          <div className="bg-white rounded-xl shadow-md p-6">
 
-          <div className="text-3xl font-bold text-green-700 mt-2">
-            {valorEstoque.toLocaleString(
-              "pt-BR",
-              {
-                style: "currency",
-                currency: "BRL",
-              }
-            )}
+            <div className="text-gray-500">
+              Valor do Estoque
+            </div>
+
+            <div className="text-3xl font-bold text-green-700 mt-2">
+              {valorEstoque.toLocaleString(
+                "pt-BR",
+                {
+                  style: "currency",
+                  currency:
+                    "BRL",
+                }
+              )}
+            </div>
+
           </div>
-        </div>
+        )}
 
         <div className="bg-white rounded-xl shadow-md p-6">
+
           <div className="text-gray-500">
             Produtos
           </div>
@@ -97,9 +109,11 @@ export default function Dashboard() {
           <div className="text-4xl font-bold text-blue-900 mt-2">
             {totalProdutos}
           </div>
+
         </div>
 
         <div className="bg-white rounded-xl shadow-md p-6">
+
           <div className="text-gray-500">
             Estoque Baixo
           </div>
@@ -107,9 +121,11 @@ export default function Dashboard() {
           <div className="text-4xl font-bold text-red-600 mt-2">
             {estoqueBaixo}
           </div>
+
         </div>
 
         <div className="bg-white rounded-xl shadow-md p-6">
+
           <div className="text-gray-500">
             Fornecedores
           </div>
@@ -117,6 +133,7 @@ export default function Dashboard() {
           <div className="text-4xl font-bold text-purple-600 mt-2">
             {totalFornecedores}
           </div>
+
         </div>
 
       </div>

@@ -8,11 +8,19 @@ import InformacoesCard from "../../components/sistema/InformacoesCard";
 import { SYSTEM } from "../../config/system";
 
 import {
-  gerarBackup,
   verificarBanco,
 } from "../../services/sistemaSupabase";
 
+import {
+  fazerBackupCompleto,
+} from "../../services/backup/backupService";
+
+import useUsuario from "../../hooks/useUsuario";
+
 export default function Sistema() {
+  const usuario =
+    useUsuario();
+
   const [arquivoBackup, setArquivoBackup] =
     useState<File | null>(null);
 
@@ -51,95 +59,10 @@ export default function Sistema() {
 
   async function fazerBackup() {
     try {
-      const backup =
-        await gerarBackup();
-
-      const json =
-        JSON.stringify(
-          {
-            sistema:
-              "Controle de Estoque - Visual Esquadrias",
-
-            empresa:
-              "Visual Esquadrias",
-
-            versao:
-              backup.versao,
-
-            dataBackup:
-              backup.dataBackup,
-
-            produtos:
-              backup.produtos,
-
-            fornecedores:
-              backup.fornecedores,
-
-            lixeira:
-              backup.lixeira,
-          },
-          null,
-          2
-        );
-
-      const blob =
-        new Blob(
-          [json],
-          {
-            type: "application/json",
-          }
-        );
-
-      const url =
-        URL.createObjectURL(
-          blob
-        );
-
-      const link =
-        document.createElement(
-          "a"
-        );
-
-      const data =
-        new Date()
-          .toLocaleDateString(
-            "pt-BR"
-          )
-          .replace(
-            /\//g,
-            "-"
-          );
-
-      link.href = url;
-
-      link.download =
-        `Backup-Visual-Esquadrias-${data}.json`;
-
-      document.body.appendChild(
-        link
-      );
-
-      link.click();
-
-      document.body.removeChild(
-        link
-      );
-
-      URL.revokeObjectURL(
-        url
-      );
-
       const dataHora =
-        new Date().toLocaleString(
-          "pt-BR"
-        );
+        await fazerBackupCompleto();
 
       setUltimoBackup(
-        dataHora
-      );
-
-      localStorage.setItem(
-        "ultimoBackup",
         dataHora
       );
 
@@ -166,7 +89,7 @@ export default function Sistema() {
     }
 
     alert(
-      "A restauração será implementada na próxima sprint."
+      "A restauração será implementada em breve."
     );
   }
 
@@ -179,28 +102,31 @@ export default function Sistema() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         <BancoCard
-          status={
-            statusBanco
-          }
+          status={statusBanco}
         />
 
-        <BackupCard
-          ultimoBackup={
-            ultimoBackup
-          }
-          onBackup={
-            fazerBackup
-          }
-        />
+        {usuario?.perfil ===
+          "DESENVOLVEDOR" && (
+          <>
+            <BackupCard
+              ultimoBackup={
+                ultimoBackup
+              }
+              onBackup={
+                fazerBackup
+              }
+            />
 
-        <RestaurarCard
-          onSelecionarArquivo={
-            setArquivoBackup
-          }
-          onRestaurar={
-            restaurarBackup
-          }
-        />
+            <RestaurarCard
+              onSelecionarArquivo={
+                setArquivoBackup
+              }
+              onRestaurar={
+                restaurarBackup
+              }
+            />
+          </>
+        )}
 
         <InformacoesCard
           versao={

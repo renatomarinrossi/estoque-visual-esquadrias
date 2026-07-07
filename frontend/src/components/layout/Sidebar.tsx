@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+
 import {
   LayoutDashboard,
   Package,
@@ -8,52 +9,69 @@ import {
   Truck,
   Trash2,
   Settings,
+  Users,
 } from "lucide-react";
 
-const menu = [
-  {
-    nome: "Dashboard",
-    rota: "/dashboard",
-    icone: LayoutDashboard,
-  },
-  {
-    nome: "Produtos",
-    rota: "/produtos",
-    icone: Package,
-  },
-  {
-    nome: "Entrada",
-    rota: "/entrada",
-    icone: ArrowDownCircle,
-  },
-  {
-    nome: "Saída",
-    rota: "/saida",
-    icone: ArrowUpCircle,
-  },
-  {
-    nome: "Compras",
-    rota: "/compras",
-    icone: ShoppingCart,
-  },
-  {
-    nome: "Fornecedores",
-    rota: "/fornecedores",
-    icone: Truck,
-  },
-  {
-    nome: "Lixeira",
-    rota: "/lixeira",
-    icone: Trash2,
-  },
-  {
-    nome: "Sistema",
-    rota: "/sistema",
-    icone: Settings,
-  },
-];
+import useUsuario from "../../hooks/useUsuario";
 
 export default function Sidebar() {
+  const usuario =
+    useUsuario();
+
+  const menu = [
+    {
+      nome: "Dashboard",
+      rota: "/dashboard",
+      icone: LayoutDashboard,
+    },
+    {
+      nome: "Produtos",
+      rota: "/produtos",
+      icone: Package,
+    },
+    {
+      nome: "Entrada",
+      rota: "/entrada",
+      icone: ArrowDownCircle,
+    },
+    {
+      nome: "Saída",
+      rota: "/saida",
+      icone: ArrowUpCircle,
+    },
+    {
+      nome: "Compras",
+      rota: "/compras",
+      icone: ShoppingCart,
+    },
+    {
+      nome: "Fornecedores",
+      rota: "/fornecedores",
+      icone: Truck,
+    },
+    {
+      nome: "Lixeira",
+      rota: "/lixeira",
+      icone: Trash2,
+    },
+    {
+      nome: "Sistema",
+      rota: "/sistema",
+      icone: Settings,
+      mostrar:
+        usuario?.perfil !==
+        "OPERADOR",
+    },
+    {
+      nome: "Usuários",
+      rota: "/usuarios",
+      icone: Users,
+      mostrar:
+        usuario?.perfil ===
+        "DESENVOLVEDOR",
+    },
+  ];
+
   return (
     <aside className="w-72 bg-blue-900 text-white flex flex-col">
 
@@ -63,26 +81,35 @@ export default function Sidebar() {
 
       <nav className="flex-1 mt-6">
 
-        {menu.map((item) => {
-          const Icon = item.icone;
+        {menu
+          .filter(
+            (item) =>
+              item.mostrar !== false
+          )
+          .map((item) => {
+            const Icon =
+              item.icone;
 
-          return (
-            <NavLink
-              key={item.rota}
-              to={item.rota}
-              className={({ isActive }) =>
-                `flex items-center gap-4 px-8 py-4 transition ${
-                  isActive
-                    ? "bg-blue-800 border-l-4 border-white"
-                    : "hover:bg-blue-800"
-                }`
-              }
-            >
-              <Icon size={22} />
-              {item.nome}
-            </NavLink>
-          );
-        })}
+            return (
+              <NavLink
+                key={item.rota}
+                to={item.rota}
+                className={({
+                  isActive,
+                }) =>
+                  `flex items-center gap-4 px-8 py-4 transition ${
+                    isActive
+                      ? "bg-blue-800 border-l-4 border-white"
+                      : "hover:bg-blue-800"
+                  }`
+                }
+              >
+                <Icon size={22} />
+
+                {item.nome}
+              </NavLink>
+            );
+          })}
 
       </nav>
 
