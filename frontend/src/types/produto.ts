@@ -17,6 +17,8 @@ export type Produto = {
 
   fornecedorId?: number | null;
 
+  fornecedorNome?: string;
+
   observacao: string;
 
   ultimaEntrada?: string | null;
