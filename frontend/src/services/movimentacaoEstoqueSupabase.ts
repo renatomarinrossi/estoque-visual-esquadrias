@@ -53,7 +53,21 @@ export async function buscarMovimentacoesEstoque(
 
   if (error) throw error;
 
-  const movimentacoes = (data ?? []) as MovimentacaoEstoque[];
+  const movimentacoes: MovimentacaoEstoque[] = (data ?? []).map((registro) => ({
+    id: Number(registro.id),
+    tipo: registro.tipo as "ENTRADA" | "SAIDA",
+    quantidade: Number(registro.quantidade),
+    saldo_anterior: Number(registro.saldo_anterior),
+    saldo_resultante: Number(registro.saldo_resultante),
+    preco_compra: registro.preco_compra === null ? null : Number(registro.preco_compra),
+    data_movimentacao: String(registro.data_movimentacao),
+    produtos: Array.isArray(registro.produtos)
+      ? (registro.produtos[0] as { codigo: string; descricao: string } | undefined) ?? null
+      : (registro.produtos as { codigo: string; descricao: string } | null),
+    usuarios: Array.isArray(registro.usuarios)
+      ? (registro.usuarios[0] as { nome: string; login: string } | undefined) ?? null
+      : (registro.usuarios as { nome: string; login: string } | null),
+  }));
   const busca = filtros.produto?.trim().toLocaleLowerCase("pt-BR");
 
   if (!busca) return movimentacoes;

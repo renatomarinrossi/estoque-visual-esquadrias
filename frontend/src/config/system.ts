@@ -1,4 +1,5 @@
 export const SYSTEM = {
-  version: "2.0.0",
-  lastUpdate: "06/07/2026",
+  version: "3.0.0",
+  lastUpdate: "02/08/2026",
 };
+

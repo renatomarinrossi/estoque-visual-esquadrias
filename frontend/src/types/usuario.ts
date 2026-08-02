@@ -8,9 +8,10 @@ export type Usuario = {
   perfil: PerfilUsuario;
   ativo: boolean;
   senha?: string;
+  email_autenticacao?: string;
 };
 
-export type UsuarioLogado = Omit<Usuario, "senha"> & {
+export type UsuarioLogado = Omit<Usuario, "senha" | "email_autenticacao"> & {
   id: number;
   auth_user_id: string;
 };

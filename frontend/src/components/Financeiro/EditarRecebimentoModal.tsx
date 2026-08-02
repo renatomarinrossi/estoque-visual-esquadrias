@@ -24,7 +24,8 @@ export default function EditarRecebimentoModal({
     setObservacao(recebimento.observacao ?? "");
   }, [recebimento]);
 
-  if (!recebimento) return null;
+  if (!recebimento || !recebimento.parcela_id) return null;
+  const recebimentoAtual = recebimento;
 
   function confirmar() {
     if (!dataRecebimento) {
@@ -38,10 +39,12 @@ export default function EditarRecebimentoModal({
     }
 
     onConfirmar({
-      ...recebimento,
+      id: recebimentoAtual.id,
+      parcela_id: recebimentoAtual.parcela_id,
       data_recebimento: dataRecebimento,
       valor,
       observacao: observacao.trim(),
+      created_at: recebimentoAtual.created_at,
     });
   }
 

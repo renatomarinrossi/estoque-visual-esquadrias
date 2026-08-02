@@ -11,25 +11,22 @@ export async function buscarContasReceber(): Promise<ContaReceber[]> {
     .in("status", ["A_RECEBER", "PARCIALMENTE_RECEBIDO"])
     .order("data_vencimento", { ascending: true });
 
-  if (erroParcelas) {
-    console.error(erroParcelas);
-    throw erroParcelas;
-  }
+  if (erroParcelas) throw erroParcelas;
 
   const parcelasPendentes = (parcelas ?? []) as VendaParcela[];
+  if (parcelasPendentes.length === 0) return [];
+
   const vendaIds = [...new Set(parcelasPendentes.map((parcela) => parcela.venda_id))];
+  const parcelaIds = parcelasPendentes.flatMap((parcela) => (parcela.id ? [parcela.id] : []));
 
-  if (vendaIds.length === 0) return [];
+  const [{ data: vendas, error: erroVendas }, { data: recebimentos, error: erroRecebimentos }] =
+    await Promise.all([
+      supabase.from("vendas").select("id, cliente").in("id", vendaIds),
+      supabase.from("vendas_recebimentos").select("parcela_id, valor").in("parcela_id", parcelaIds),
+    ]);
 
-  const { data: vendas, error: erroVendas } = await supabase
-    .from("vendas")
-    .select("id, cliente")
-    .in("id", vendaIds);
-
-  if (erroVendas) {
-    console.error(erroVendas);
-    throw erroVendas;
-  }
+  if (erroVendas) throw erroVendas;
+  if (erroRecebimentos) throw erroRecebimentos;
 
   const clientesPorVenda = new Map(
     ((vendas ?? []) as Pick<Venda, "id" | "cliente">[]).flatMap((venda) =>
@@ -37,29 +34,14 @@ export async function buscarContasReceber(): Promise<ContaReceber[]> {
     )
   );
 
-  const recebimentos = await Promise.all(
-    parcelasPendentes.map(async (parcela) => {
-      const { data, error } = await supabase
-        .from("vendas_recebimentos")
-        .select("valor")
-        .eq("parcela_id", parcela.id!);
-
-      if (error) {
-        console.error(error);
-        throw error;
-      }
-
-      return [parcela.id!, data ?? []] as const;
-    })
-  );
-
-  const recebimentosPorParcela = new Map(recebimentos);
+  const totaisPorParcela = (recebimentos ?? []).reduce((totais, recebimento) => {
+    const parcelaId = Number(recebimento.parcela_id);
+    totais.set(parcelaId, (totais.get(parcelaId) ?? 0) + Number(recebimento.valor));
+    return totais;
+  }, new Map<number, number>());
 
   return parcelasPendentes.map((parcela) => {
-    const totalRecebido = (recebimentosPorParcela.get(parcela.id!) ?? []).reduce(
-      (total, recebimento) => total + Number(recebimento.valor),
-      0
-    );
+    const totalRecebido = totaisPorParcela.get(parcela.id!) ?? 0;
 
     return {
       parcela_id: parcela.id!,
@@ -77,3 +59,4 @@ export async function buscarContasReceber(): Promise<ContaReceber[]> {
     };
   });
 }
+

@@ -2,24 +2,12 @@ import { supabase } from "./supabase";
 
 import type { UsuarioLogado } from "../types/usuario";
 
-const DOMINIO_INTERNO = "usuarios.visual-esquadrias.local";
-
-function emailInternoDoLogin(login: string) {
-  const identificador = login
-    .trim()
-    .toLocaleLowerCase("pt-BR")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-
-  if (!identificador) throw new Error("Usuário inválido.");
-
-  return `${identificador}@${DOMINIO_INTERNO}`;
-}
-
 export async function buscarUsuarioAutenticado(): Promise<UsuarioLogado | null> {
-  const { data: { user }, error: erroAuth } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: erroAuth,
+  } = await supabase.auth.getUser();
+
   if (erroAuth || !user) return null;
 
   const { data, error } = await supabase
@@ -35,12 +23,20 @@ export async function buscarUsuarioAutenticado(): Promise<UsuarioLogado | null> 
 }
 
 export async function entrarComUsuario(login: string, senha: string) {
-  const { error } = await supabase.auth.signInWithPassword({
-    email: emailInternoDoLogin(login),
-    password: senha,
+  const { data, error } = await supabase.functions.invoke("autenticar-usuario", {
+    body: { login: login.trim(), senha },
   });
 
-  if (error) throw new Error("Usuário ou senha inválidos.");
+  if (error || data?.error || !data?.session?.access_token || !data?.session?.refresh_token) {
+    throw new Error(data?.error || "Usuário ou senha inválidos.");
+  }
+
+  const { error: erroSessao } = await supabase.auth.setSession({
+    access_token: data.session.access_token,
+    refresh_token: data.session.refresh_token,
+  });
+
+  if (erroSessao) throw erroSessao;
 
   const usuario = await buscarUsuarioAutenticado();
   if (!usuario) {
