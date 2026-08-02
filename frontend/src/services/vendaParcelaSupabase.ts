@@ -1,106 +1,75 @@
 import { supabase } from "./supabase";
+
 import type { VendaParcela } from "../types/VendaParcela";
+
+type StatusParcela =
+  | "A_RECEBER"
+  | "PARCIALMENTE_RECEBIDO"
+  | "RECEBIDO";
 
 export async function buscarParcelasVenda(
   vendaId: number
-) {
-
+): Promise<VendaParcela[]> {
   const { data, error } = await supabase
     .from("vendas_parcelas")
     .select("*")
     .eq("venda_id", vendaId)
-    .order("numero_parcela", {
-      ascending: true,
-    });
-
-  if (error) {
-    console.error(error);
-    return [];
-  }
-
-  return data;
-
-}
-
-export async function inserirParcela(
-  parcela: VendaParcela
-) {
-
-  const { error } = await supabase
-    .from("vendas_parcelas")
-    .insert({
-
-      venda_id: parcela.venda_id,
-
-      numero_parcela:
-        parcela.numero_parcela,
-
-      total_parcelas:
-        parcela.total_parcelas,
-
-      valor: parcela.valor,
-
-      data_vencimento:
-        parcela.data_vencimento,
-
-      forma_pagamento:
-        parcela.forma_pagamento,
-
-      status: parcela.status,
-
-      condicionado_entrega:
-        parcela.condicionado_entrega,
-
-      descricao_entrega:
-        parcela.descricao_entrega,
-
-    });
+    .order("numero_parcela", { ascending: true });
 
   if (error) {
     console.error(error);
     throw error;
   }
 
+  return (data ?? []) as VendaParcela[];
+}
+
+export async function inserirParcela(
+  parcela: VendaParcela
+): Promise<void> {
+  const { error } = await supabase.from("vendas_parcelas").insert({
+    venda_id: parcela.venda_id,
+    numero_parcela: parcela.numero_parcela,
+    total_parcelas: parcela.total_parcelas,
+    valor: parcela.valor,
+    data_vencimento: parcela.data_vencimento || null,
+    forma_pagamento: parcela.forma_pagamento,
+    status: "A_RECEBER",
+    condicionado_entrega:
+      parcela.forma_pagamento === "CONDICIONADO_ENTREGA",
+    descricao_entrega:
+      parcela.forma_pagamento === "CONDICIONADO_ENTREGA"
+        ? parcela.descricao_entrega
+        : "",
+  });
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
 }
 
 export async function atualizarParcela(
   parcela: VendaParcela
-) {
-
+): Promise<void> {
   if (!parcela.id) {
-
-    throw new Error(
-      "Parcela sem ID."
-    );
-
+    throw new Error("Parcela sem ID.");
   }
 
   const { error } = await supabase
     .from("vendas_parcelas")
     .update({
-
-      numero_parcela:
-        parcela.numero_parcela,
-
-      total_parcelas:
-        parcela.total_parcelas,
-
+      numero_parcela: parcela.numero_parcela,
+      total_parcelas: parcela.total_parcelas,
       valor: parcela.valor,
-
-      data_vencimento:
-        parcela.data_vencimento,
-
-      forma_pagamento:
-        parcela.forma_pagamento,
-
-      status: parcela.status,
-
+      data_vencimento: parcela.data_vencimento || null,
+      forma_pagamento: parcela.forma_pagamento,
       condicionado_entrega:
-        parcela.condicionado_entrega,
-
+        parcela.forma_pagamento === "CONDICIONADO_ENTREGA",
       descricao_entrega:
-        parcela.descricao_entrega,
-
+        parcela.forma_pagamento === "CONDICIONADO_ENTREGA"
+          ? parcela.descricao_entrega
+          : "",
     })
     .eq("id", parcela.id);
 
@@ -108,13 +77,9 @@ export async function atualizarParcela(
     console.error(error);
     throw error;
   }
-
 }
 
-export async function excluirParcela(
-  id: number
-) {
-
+export async function excluirParcela(id: number): Promise<void> {
   const { error } = await supabase
     .from("vendas_parcelas")
     .delete()
@@ -124,79 +89,65 @@ export async function excluirParcela(
     console.error(error);
     throw error;
   }
-
-}export async function salvarParcelasVenda(
-  vendaId: number,
-  parcelas: VendaParcela[]
-) {
-
-  const atuais =
-    await buscarParcelasVenda(vendaId);
-
-  const atuaisIds =
-    (atuais as VendaParcela[])
-      .filter((p) => p.id)
-      .map((p) => p.id!);
-
-  const novosIds =
-    parcelas
-      .filter((p) => p.id)
-      .map((p) => p.id!);
-
-  // Exclui parcelas removidas
-  for (const id of atuaisIds) {
-
-    if (!novosIds.includes(id)) {
-
-      await excluirParcela(id);
-
-    }
-
-  }
-
-  // Atualiza ou insere
-  for (const parcela of parcelas) {
-
-    if (parcela.id) {
-
-      await atualizarParcela(parcela);
-
-    } else {
-
-      await inserirParcela({
-
-        ...parcela,
-
-        venda_id: vendaId,
-
-      });
-
-    }
-
-  }
-
 }
 
-export async function atualizarStatusParcela(
-  parcelaId: number
-) {
+export async function salvarParcelasVenda(
+  vendaId: number,
+  parcelas: VendaParcela[]
+): Promise<void> {
+  const atuais = await buscarParcelasVenda(vendaId);
+  const idsAtuais = atuais.flatMap((parcela) =>
+    parcela.id ? [parcela.id] : []
+  );
+  const idsMantidos = parcelas.flatMap((parcela) =>
+    parcela.id ? [parcela.id] : []
+  );
 
-  const { data: parcela, error } =
-    await supabase
-      .from("vendas_parcelas")
-      .select("*")
-      .eq("id", parcelaId)
-      .single();
-
-  if (error) {
-    console.error(error);
-    throw error;
+  for (const id of idsAtuais) {
+    if (!idsMantidos.includes(id)) {
+      await excluirParcela(id);
+    }
   }
 
-  const {
-    data: recebimentos,
-    error: erroRecebimentos,
-  } = await supabase
+  for (const parcela of parcelas) {
+    const parcelaNormalizada: VendaParcela = {
+      ...parcela,
+      venda_id: vendaId,
+      condicionado_entrega:
+        parcela.forma_pagamento === "CONDICIONADO_ENTREGA",
+      descricao_entrega:
+        parcela.forma_pagamento === "CONDICIONADO_ENTREGA"
+          ? parcela.descricao_entrega
+          : "",
+    };
+
+    if (parcelaNormalizada.id) {
+      await atualizarParcela(parcelaNormalizada);
+      await atualizarStatusParcela(parcelaNormalizada.id);
+    } else {
+      await inserirParcela(parcelaNormalizada);
+    }
+  }
+}
+
+export async function atualizarStatusParcela(parcelaId: number): Promise<{
+  vendaId: number;
+  status: StatusParcela;
+  totalRecebido: number;
+  saldo: number;
+}> {
+  const { data: parcela, error: erroParcela } = await supabase
+    .from("vendas_parcelas")
+    .select("id, venda_id, valor")
+    .eq("id", parcelaId)
+    .single();
+
+  if (erroParcela) {
+    console.error(erroParcela);
+    throw erroParcela;
+  }
+
+  const { data: recebimentos, error: erroRecebimentos } = await supabase
     .from("vendas_recebimentos")
     .select("valor")
     .eq("parcela_id", parcelaId);
@@ -206,95 +157,56 @@ export async function atualizarStatusParcela(
     throw erroRecebimentos;
   }
 
-  const totalRecebido =
-    (recebimentos ?? []).reduce(
+  const totalRecebido = (recebimentos ?? []).reduce(
+    (total, recebimento) => total + Number(recebimento.valor),
+    0
+  );
+  const saldo = Number(parcela.valor) - totalRecebido;
 
-      (total, item) =>
+  let status: StatusParcela = "A_RECEBER";
 
-        total + Number(item.valor),
-
-      0
-
-    );
-
-  let status:
-    | "A_RECEBER"
-    | "PARCIALMENTE_RECEBIDO"
-    | "RECEBIDO";
-
-  if (totalRecebido <= 0) {
-
-    status = "A_RECEBER";
-
-  } else if (
-    totalRecebido <
-    Number(parcela.valor)
-  ) {
-
-    status =
-      "PARCIALMENTE_RECEBIDO";
-
-  } else {
-
-    status = "RECEBIDO";
-
+  if (totalRecebido > 0 && totalRecebido < Number(parcela.valor)) {
+    status = "PARCIALMENTE_RECEBIDO";
   }
 
-  const { error: erroUpdate } =
-    await supabase
-      .from("vendas_parcelas")
-      .update({
+  if (totalRecebido >= Number(parcela.valor)) {
+    status = "RECEBIDO";
+  }
 
-        status,
+  const { error: erroAtualizacao } = await supabase
+    .from("vendas_parcelas")
+    .update({ status })
+    .eq("id", parcelaId);
 
-      })
-      .eq("id", parcelaId);
-
-  if (erroUpdate) {
-    console.error(erroUpdate);
-    throw erroUpdate;
+  if (erroAtualizacao) {
+    console.error(erroAtualizacao);
+    throw erroAtualizacao;
   }
 
   return {
-
     vendaId: parcela.venda_id,
-
     status,
-
     totalRecebido,
-
-    saldo:
-      Number(parcela.valor) -
-      totalRecebido,
-
+    saldo,
   };
-
 }
 
 export async function buscarProximaParcela(
   vendaId: number
-) {
-
-  const { data, error } =
-    await supabase
-      .from("vendas_parcelas")
-      .select("*")
-      .eq("venda_id", vendaId)
-      .in("status", [
-        "A_RECEBER",
-        "PARCIALMENTE_RECEBIDO",
-      ])
-      .order("data_vencimento", {
-        ascending: true,
-      })
-      .limit(1)
-      .maybeSingle();
+): Promise<VendaParcela | null> {
+  const { data, error } = await supabase
+    .from("vendas_parcelas")
+    .select("*")
+    .eq("venda_id", vendaId)
+    .in("status", ["A_RECEBER", "PARCIALMENTE_RECEBIDO"])
+    .order("data_vencimento", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
   if (error) {
     console.error(error);
-    return null;
+    throw error;
   }
 
-  return data;
-
+  return data as VendaParcela | null;
 }

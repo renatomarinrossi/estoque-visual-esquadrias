@@ -1,25 +1,22 @@
 import { supabase } from "./supabase";
+
 import type { Venda } from "../types/Venda";
 
-export async function buscarVendas() {
+export async function buscarVendas(): Promise<Venda[]> {
   const { data, error } = await supabase
     .from("vendas")
     .select("*")
-    .order("data_venda", {
-      ascending: false,
-    });
+    .order("data_venda", { ascending: false });
 
   if (error) {
     console.error(error);
-    return [];
+    throw error;
   }
 
-  return data;
+  return (data ?? []) as Venda[];
 }
 
-export async function buscarVendaPorId(
-  id: number
-) {
+export async function buscarVendaPorId(id: number): Promise<Venda> {
   const { data, error } = await supabase
     .from("vendas")
     .select("*")
@@ -31,21 +28,18 @@ export async function buscarVendaPorId(
     throw error;
   }
 
-  return data;
+  return data as Venda;
 }
 
-export async function inserirVenda(
-  venda: Venda
-) {
+export async function inserirVenda(venda: Venda): Promise<Venda> {
   const { data, error } = await supabase
     .from("vendas")
     .insert({
       data_venda: venda.data_venda,
       cliente: venda.cliente,
       valor_total: venda.valor_total,
-      forma_pagamento: venda.forma_pagamento,
       responsavel: venda.responsavel,
-      status: venda.status,
+      status: "A_RECEBER",
       observacoes: venda.observacoes,
     })
     .select()
@@ -56,12 +50,10 @@ export async function inserirVenda(
     throw error;
   }
 
-  return data;
+  return data as Venda;
 }
 
-export async function atualizarVenda(
-  venda: Venda
-) {
+export async function atualizarVenda(venda: Venda): Promise<Venda> {
   if (!venda.id) {
     throw new Error("Venda sem ID.");
   }
@@ -72,9 +64,7 @@ export async function atualizarVenda(
       data_venda: venda.data_venda,
       cliente: venda.cliente,
       valor_total: venda.valor_total,
-      forma_pagamento: venda.forma_pagamento,
       responsavel: venda.responsavel,
-      status: venda.status,
       observacoes: venda.observacoes,
     })
     .eq("id", venda.id)
@@ -86,60 +76,39 @@ export async function atualizarVenda(
     throw error;
   }
 
-  return data;
+  return data as Venda;
 }
 
-export async function atualizarStatusVenda(
-  vendaId: number
-) {
-
-  const {
-    data: parcelas,
-    error,
-  } = await supabase
+export async function atualizarStatusVenda(vendaId: number): Promise<void> {
+  const { data: parcelas, error: erroParcelas } = await supabase
     .from("vendas_parcelas")
     .select("status")
     .eq("venda_id", vendaId);
+
+  if (erroParcelas) {
+    console.error(erroParcelas);
+    throw erroParcelas;
+  }
+
+  const todasRecebidas =
+    (parcelas?.length ?? 0) > 0 &&
+    parcelas?.every((parcela) => parcela.status === "RECEBIDO");
+
+  const status = todasRecebidas ? "RECEBIDO" : "A_RECEBER";
+
+  const { error } = await supabase
+    .from("vendas")
+    .update({ status })
+    .eq("id", vendaId);
 
   if (error) {
     console.error(error);
     throw error;
   }
-
-  const existeParcelaPendente =
-    parcelas.some(
-      (p) =>
-        p.status === "A_RECEBER" ||
-        p.status ===
-          "PARCIALMENTE_RECEBIDO"
-    );
-
-  const novoStatus =
-    existeParcelaPendente
-      ? "A_RECEBER"
-      : "RECEBIDO";
-
-  const { error: erroVenda } =
-    await supabase
-      .from("vendas")
-      .update({
-        status: novoStatus,
-      })
-      .eq("id", vendaId);
-
-  if (erroVenda) {
-    console.error(erroVenda);
-    throw erroVenda;
-  }
 }
 
-export async function excluirVenda(
-  id: number
-) {
-  const { error } = await supabase
-    .from("vendas")
-    .delete()
-    .eq("id", id);
+export async function excluirVenda(id: number): Promise<void> {
+  const { error } = await supabase.from("vendas").delete().eq("id", id);
 
   if (error) {
     console.error(error);

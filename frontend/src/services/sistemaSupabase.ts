@@ -1,60 +1,49 @@
 import { supabase } from "./supabase";
 
+async function buscarTabela(nomeTabela: string) {
+  const { data, error } = await supabase.from(nomeTabela).select("*");
+
+  if (error) {
+    console.error(error);
+    throw new Error(`Não foi possível incluir a tabela ${nomeTabela} no backup.`);
+  }
+
+  return data ?? [];
+}
+
 export async function gerarBackup() {
-  const {
-    data: produtos,
-    error: erroProdutos,
-  } = await supabase
-    .from("produtos")
-    .select("*");
-
-  if (erroProdutos) throw erroProdutos;
-
-  const {
-    data: fornecedores,
-    error: erroFornecedores,
-  } = await supabase
-    .from("fornecedores")
-    .select("*");
-
-  if (erroFornecedores)
-    throw erroFornecedores;
-
-  const {
-    data: usuarios,
-    error: erroUsuarios,
-  } = await supabase
-    .from("usuarios")
-    .select("*");
-
-  if (erroUsuarios)
-    throw erroUsuarios;
-
-  const {
-    data: lixeira,
-    error: erroLixeira,
-  } = await supabase
-    .from("lixeira")
-    .select("*");
-
-  if (erroLixeira)
-    throw erroLixeira;
+  const [
+    fornecedores,
+    produtos,
+    lixeira,
+    usuarios,
+    vendas,
+    vendasParcelas,
+    vendasRecebimentos,
+    contasPagar,
+  ] = await Promise.all([
+    buscarTabela("fornecedores"),
+    buscarTabela("produtos"),
+    buscarTabela("lixeira"),
+    buscarTabela("usuarios"),
+    buscarTabela("vendas"),
+    buscarTabela("vendas_parcelas"),
+    buscarTabela("vendas_recebimentos"),
+    buscarTabela("contas_pagar"),
+  ]);
 
   return {
-    versaoSistema: "2.0.0",
-
-    backupVersion: 1,
-
-    dataBackup:
-      new Date().toISOString(),
-
-    produtos,
-
+    versaoSistema: "3.0.0",
+    backupVersion: 2,
+    dataBackup: new Date().toISOString(),
     fornecedores,
-
-    usuarios,
-
+    produtos,
     lixeira,
+    usuarios,
+    vendas,
+    vendasParcelas,
+    vendasRecebimentos,
+    contasPagar,
   };
 }
 

@@ -1,45 +1,37 @@
 import { useEffect, useState } from "react";
-
 import {
   BrowserRouter,
-  Routes,
-  Route,
   Navigate,
+  Route,
+  Routes,
 } from "react-router-dom";
 
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 import MainLayout from "./layouts/MainLayout";
-
-import Dashboard from "./pages/Dashboard/Dashboard";
-import Produtos from "./pages/Produtos/Produtos";
-import Entrada from "./pages/Entrada/Entrada";
-import Saida from "./pages/Saida/Saida";
 import Compras from "./pages/Compras/Compras";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import ContasReceber from "./pages/Financeiro/ContasReceber";
+import ContasPagar from "./pages/Financeiro/ContasPagar";
 import Vendas from "./pages/Financeiro/Vendas";
+import DashboardFinanceiro from "./pages/Financeiro/DashboardFinanceiro";
 import Fornecedores from "./pages/Fornecedores/Fornecedores";
+import Entrada from "./pages/Entrada/Entrada";
 import Lixeira from "./pages/Lixeira/Lixeira";
+import Login from "./pages/Login/Login";
+import Produtos from "./pages/Produtos/Produtos";
+import Saida from "./pages/Saida/Saida";
 import Sistema from "./pages/Sistema/Sistema";
 import Usuarios from "./pages/Usuarios/Usuarios";
-import Login from "./pages/Login/Login";
-
-import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
-  const [carregando, setCarregando] =
-    useState(true);
-
-  const [usuario, setUsuario] =
-    useState<any>(null);
+  const [carregando, setCarregando] = useState(true);
+  const [usuario, setUsuario] = useState<unknown>(null);
 
   useEffect(() => {
-    const usuarioSalvo =
-      sessionStorage.getItem(
-        "visual_usuario"
-      );
+    const usuarioSalvo = sessionStorage.getItem("visual_usuario");
 
     if (usuarioSalvo) {
-      setUsuario(
-        JSON.parse(usuarioSalvo)
-      );
+      setUsuario(JSON.parse(usuarioSalvo));
     }
 
     setCarregando(false);
@@ -60,71 +52,31 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={<MainLayout />}
-        >
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="produtos" element={<Produtos />} />
+          <Route path="entrada" element={<Entrada />} />
+          <Route path="saida" element={<Saida />} />
+          <Route path="compras" element={<Compras />} />
+          <Route path="vendas" element={<Vendas />} />
+          <Route path="contas-receber" element={<ContasReceber />} />
+          <Route path="contas-pagar" element={<ContasPagar />} />
           <Route
-            index
+            path="dashboard-financeiro"
             element={
-              <Navigate
-                to="/dashboard"
-                replace
-              />
+              <ProtectedRoute perfis={["DESENVOLVEDOR", "GERENCIAL"]}>
+                <DashboardFinanceiro />
+              </ProtectedRoute>
             }
           />
-
-          <Route
-            path="dashboard"
-            element={<Dashboard />}
-          />
-
-          <Route
-            path="produtos"
-            element={<Produtos />}
-          />
-
-          <Route
-            path="entrada"
-            element={<Entrada />}
-          />
-
-          <Route
-            path="saida"
-            element={<Saida />}
-          />
-
-          <Route
-            path="compras"
-            element={<Compras />}
-          />
-
-          <Route
-            path="vendas"
-            element={<Vendas />}
-          />
-
-          <Route
-            path="fornecedores"
-            element={<Fornecedores />}
-          />
-
-          <Route
-            path="lixeira"
-            element={<Lixeira />}
-          />
-
-          <Route
-            path="sistema"
-            element={<Sistema />}
-          />
-
+          <Route path="fornecedores" element={<Fornecedores />} />
+          <Route path="lixeira" element={<Lixeira />} />
+          <Route path="sistema" element={<Sistema />} />
           <Route
             path="usuarios"
             element={
-              <ProtectedRoute
-                perfil="DESENVOLVEDOR"
-              >
+              <ProtectedRoute perfil="DESENVOLVEDOR">
                 <Usuarios />
               </ProtectedRoute>
             }
@@ -136,3 +88,4 @@ function App() {
 }
 
 export default App;
+
