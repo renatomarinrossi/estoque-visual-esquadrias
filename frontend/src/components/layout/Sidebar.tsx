@@ -10,6 +10,7 @@ import {
   Trash2,
   Settings,
   Users,
+  DollarSign,
 } from "lucide-react";
 
 import useUsuario from "../../hooks/useUsuario";
@@ -40,15 +41,20 @@ export default function Sidebar() {
       icone: ArrowUpCircle,
     },
     {
-      nome: "Compras",
-      rota: "/compras",
-      icone: ShoppingCart,
-    },
-    {
-      nome: "Fornecedores",
-      rota: "/fornecedores",
-      icone: Truck,
-    },
+  nome: "Compras",
+  rota: "/compras",
+  icone: ShoppingCart,
+},
+{
+  nome: "Vendas",
+  rota: "/vendas",
+  icone: DollarSign,
+},
+{
+  nome: "Fornecedores",
+  rota: "/fornecedores",
+  icone: Truck,
+},
     {
       nome: "Lixeira",
       rota: "/lixeira",

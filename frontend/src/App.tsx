@@ -14,6 +14,7 @@ import Produtos from "./pages/Produtos/Produtos";
 import Entrada from "./pages/Entrada/Entrada";
 import Saida from "./pages/Saida/Saida";
 import Compras from "./pages/Compras/Compras";
+import Vendas from "./pages/Financeiro/Vendas";
 import Fornecedores from "./pages/Fornecedores/Fornecedores";
 import Lixeira from "./pages/Lixeira/Lixeira";
 import Sistema from "./pages/Sistema/Sistema";
@@ -58,14 +59,11 @@ function App() {
 
   return (
     <BrowserRouter>
-
       <Routes>
-
         <Route
           path="/"
           element={<MainLayout />}
         >
-
           <Route
             index
             element={
@@ -102,6 +100,11 @@ function App() {
           />
 
           <Route
+            path="vendas"
+            element={<Vendas />}
+          />
+
+          <Route
             path="fornecedores"
             element={<Fornecedores />}
           />
@@ -126,11 +129,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-
         </Route>
-
       </Routes>
-
     </BrowserRouter>
   );
 }
