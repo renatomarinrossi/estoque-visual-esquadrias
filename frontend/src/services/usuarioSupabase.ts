@@ -2,92 +2,42 @@ import { supabase } from "./supabase";
 
 import type { Usuario } from "../types/usuario";
 
-export async function buscarUsuarios() {
+async function executarAcao(action: string, dados: Record<string, unknown> = {}) {
+  const { data, error } = await supabase.functions.invoke("gerenciar-usuarios", {
+    body: { action, ...dados },
+  });
+
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+
+  return data;
+}
+
+export async function buscarUsuarios(): Promise<Usuario[]> {
   const { data, error } = await supabase
     .from("usuarios")
-    .select("*")
+    .select("id, auth_user_id, nome, login, perfil, ativo")
     .order("nome");
 
-  if (error) {
-    console.error(error);
-    return [];
-  }
+  if (error) throw error;
 
-  return data;
+  return (data ?? []) as Usuario[];
 }
 
-export async function autenticarUsuario(
-  login: string,
-  senha: string
-) {
-  const { data, error } = await supabase
-    .from("usuarios")
-    .select("*")
-    .eq("login", login)
-    .eq("senha", senha)
-    .eq("ativo", true)
-    .single();
-
-  if (error) {
-    return null;
-  }
-
-  return data;
+export async function inserirUsuario(usuario: Usuario) {
+  if (!usuario.senha) throw new Error("Informe a senha do novo usuário.");
+  await executarAcao("create", { ...usuario });
 }
 
-export async function inserirUsuario(
-  usuario: Usuario
-) {
-  const { error } = await supabase
-    .from("usuarios")
-    .insert({
-      nome: usuario.nome,
-      login: usuario.login,
-      senha: usuario.senha,
-      perfil: usuario.perfil,
-      ativo: usuario.ativo,
-    });
-
-  if (error) {
-    console.error(error);
-    throw error;
-  }
+export async function atualizarUsuario(id: number, usuario: Usuario) {
+  await executarAcao("update", { ...usuario, id });
 }
 
-export async function atualizarUsuario(
-  id: number,
-  usuario: Usuario
-) {
-  const { error } = await supabase
-    .from("usuarios")
-    .update({
-      nome: usuario.nome,
-      login: usuario.login,
-      senha: usuario.senha,
-      perfil: usuario.perfil,
-      ativo: usuario.ativo,
-    })
-    .eq("id", id);
-
-  if (error) {
-    console.error(error);
-    throw error;
-  }
+export async function alterarStatusUsuario(id: number, ativo: boolean) {
+  await executarAcao("status", { id, ativo });
 }
 
-export async function alterarStatusUsuario(
-  id: number,
-  ativo: boolean
-) {
-  const { error } = await supabase
-    .from("usuarios")
-    .update({
-      ativo,
-    })
-    .eq("id", id);
-
-  if (error) {
-    console.error(error);
-    throw error;
-  }
+export async function migrarUsuariosLegados() {
+  return executarAcao("migrate_legacy");
 }
+

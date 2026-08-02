@@ -5,9 +5,7 @@ export async function buscarProdutos() {
   const { data, error } = await supabase
     .from("produtos")
     .select("*")
-    .order("id", {
-  ascending: true,
-});
+    .order("id", { ascending: true });
 
   if (error) {
     console.error(error);
@@ -17,28 +15,19 @@ export async function buscarProdutos() {
   return data;
 }
 
-export async function inserirProduto(
-  produto: Produto
-) {
-  const { error } = await supabase
-    .from("produtos")
-    .insert({
-      codigo: produto.codigo,
-      descricao: produto.descricao,
-      categoria: produto.categoria,
-      unidade: produto.unidade,
-      quantidade: produto.quantidade,
-      estoque_minimo:
-        produto.estoqueMinimo,
-      preco_compra:
-        produto.precoCompra,
-      observacao:
-        produto.observacao,
-      fornecedor_id:
-        produto.fornecedorId || null,
-      ultima_entrada:
-        produto.ultimaEntrada || null,
-    });
+export async function inserirProduto(produto: Produto) {
+  const { error } = await supabase.from("produtos").insert({
+    codigo: produto.codigo,
+    descricao: produto.descricao,
+    categoria: produto.categoria,
+    unidade: produto.unidade,
+    quantidade: produto.quantidade,
+    estoque_minimo: produto.estoqueMinimo,
+    preco_compra: produto.precoCompra,
+    observacao: produto.observacao,
+    fornecedor_id: produto.fornecedorId || null,
+    ultima_entrada: produto.ultimaEntrada || null,
+  });
 
   if (error) {
     console.error(error);
@@ -46,16 +35,8 @@ export async function inserirProduto(
   }
 }
 
-export async function atualizarProduto(
-  produto: Produto
-) {
-  console.log("ATUALIZAR PRODUTO:", produto);
-
-  if (!produto.id) {
-    throw new Error(
-      "Produto sem ID."
-    );
-  }
+export async function atualizarProduto(produto: Produto) {
+  if (!produto.id) throw new Error("Produto sem ID.");
 
   const { error } = await supabase
     .from("produtos")
@@ -65,14 +46,10 @@ export async function atualizarProduto(
       categoria: produto.categoria,
       unidade: produto.unidade,
       quantidade: produto.quantidade,
-      estoque_minimo:
-        produto.estoqueMinimo,
-      preco_compra:
-        produto.precoCompra,
-      observacao:
-        produto.observacao,
-      fornecedor_id:
-        produto.fornecedorId || null,
+      estoque_minimo: produto.estoqueMinimo,
+      preco_compra: produto.precoCompra,
+      observacao: produto.observacao,
+      fornecedor_id: produto.fornecedorId || null,
     })
     .eq("id", produto.id);
 
@@ -82,42 +59,74 @@ export async function atualizarProduto(
   }
 }
 
+function validarQuantidade(quantidade: number) {
+  if (!Number.isFinite(quantidade) || quantidade <= 0) {
+    throw new Error("Informe uma quantidade maior que zero.");
+  }
+}
+
+async function ajustarEstoque(
+  produtoId: number,
+  variacao: number,
+  opcoes: {
+    fornecedorId?: number;
+    precoCompra?: number;
+    registrarEntrada?: boolean;
+  } = {}
+) {
+  const { data, error } = await supabase.rpc("ajustar_estoque", {
+    p_produto_id: produtoId,
+    p_variacao: variacao,
+    p_fornecedor_id: opcoes.fornecedorId ?? null,
+    p_preco_compra: opcoes.precoCompra ?? null,
+    p_registrar_entrada: opcoes.registrarEntrada ?? false,
+  });
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+
+  return data?.[0];
+}
+
 export async function registrarEntradaProduto(
   produtoId: number,
   quantidade: number,
   fornecedorId: number,
   precoCompra: number
 ) {
-  const { data: produto } =
-    await supabase
-      .from("produtos")
-      .select("*")
-      .eq("id", produtoId)
-      .single();
+  validarQuantidade(quantidade);
 
-  if (!produto) {
-    throw new Error(
-      "Produto não encontrado"
-    );
-  }
+  return ajustarEstoque(produtoId, quantidade, {
+    fornecedorId,
+    precoCompra,
+    registrarEntrada: true,
+  });
+}
 
-  const novaQuantidade =
-    produto.quantidade + quantidade;
+export async function registrarSaidaProduto(produtoId: number, quantidade: number) {
+  validarQuantidade(quantidade);
 
-  const { error } =
-    await supabase
-      .from("produtos")
-      .update({
-        quantidade:
-          novaQuantidade,
-        fornecedor_id:
-          fornecedorId,
-        preco_compra:
-          precoCompra,
-        ultima_entrada:
-          new Date().toISOString(),
-      })
-      .eq("id", produtoId);
+  // O saldo pode ficar negativo de propósito: isso aponta uma possível divergência.
+  return ajustarEstoque(produtoId, -quantidade);
+}
+
+export async function moverParaLixeira(produto: Produto) {
+  const { error } = await supabase.from("lixeira").insert({
+    produto_id: produto.id,
+    codigo: produto.codigo,
+    descricao: produto.descricao,
+    categoria: produto.categoria,
+    unidade: produto.unidade,
+    quantidade: produto.quantidade,
+    estoque_minimo: produto.estoqueMinimo,
+    preco_compra: produto.precoCompra,
+    observacao: produto.observacao,
+    fornecedor_id: produto.fornecedorId || null,
+    ultima_entrada: produto.ultimaEntrada || null,
+    data_exclusao: new Date().toISOString(),
+  });
 
   if (error) {
     console.error(error);
@@ -125,89 +134,8 @@ export async function registrarEntradaProduto(
   }
 }
 
-export async function registrarSaidaProduto(
-  produtoId: number,
-  quantidade: number
-) {
-  const { data: produto } =
-    await supabase
-      .from("produtos")
-      .select("*")
-      .eq("id", produtoId)
-      .single();
-
-  if (!produto) {
-    throw new Error(
-      "Produto não encontrado"
-    );
-  }
-
-  if (
-    produto.quantidade -
-      quantidade <
-    0
-  ) {
-    throw new Error(
-      "Estoque insuficiente"
-    );
-  }
-
-  const { error } =
-    await supabase
-      .from("produtos")
-      .update({
-        quantidade:
-          produto.quantidade -
-          quantidade,
-      })
-      .eq("id", produtoId);
-
-  if (error) {
-    console.error(error);
-    throw error;
-  }
-}
-
-export async function moverParaLixeira(
-  produto: Produto
-) {
-  const { error } = await supabase
-    .from("lixeira")
-    .insert({
-      produto_id: produto.id,
-
-      codigo: produto.codigo,
-      descricao: produto.descricao,
-      categoria: produto.categoria,
-      unidade: produto.unidade,
-      quantidade: produto.quantidade,
-      estoque_minimo:
-        produto.estoqueMinimo,
-      preco_compra:
-        produto.precoCompra,
-      observacao:
-        produto.observacao,
-      fornecedor_id:
-        produto.fornecedorId || null,
-      ultima_entrada:
-        produto.ultimaEntrada || null,
-      data_exclusao:
-        new Date().toISOString(),
-    });
-
-  if (error) {
-    console.error(error);
-    throw error;
-  }
-}
-
-export async function excluirProduto(
-  id: number
-) {
-  const { error } = await supabase
-    .from("produtos")
-    .delete()
-    .eq("id", id);
+export async function excluirProduto(id: number) {
+  const { error } = await supabase.from("produtos").delete().eq("id", id);
 
   if (error) {
     console.error(error);
@@ -219,9 +147,7 @@ export async function buscarLixeira() {
   const { data, error } = await supabase
     .from("lixeira")
     .select("*")
-    .order("id", {
-      ascending: false,
-    });
+    .order("id", { ascending: false });
 
   if (error) {
     console.error(error);
@@ -231,72 +157,55 @@ export async function buscarLixeira() {
   return data;
 }
 
-export async function restaurarProdutoLixeira(
-  produto: any
-) {
-  const { error: erroInserir } =
-    await supabase
-      .from("produtos")
-      .insert({
-        id: produto.produto_id,
-
-        codigo: produto.codigo,
-        descricao:
-          produto.descricao,
-        categoria:
-          produto.categoria,
-        unidade:
-          produto.unidade,
-        quantidade:
-          produto.quantidade,
-        estoque_minimo:
-          produto.estoque_minimo,
-        preco_compra:
-          produto.preco_compra,
-        observacao:
-          produto.observacao,
-        fornecedor_id:
-          produto.fornecedor_id,
-        ultima_entrada:
-          produto.ultima_entrada,
-      });
+export async function restaurarProdutoLixeira(produto: {
+  id: number;
+  produto_id: number;
+  codigo: string;
+  descricao: string;
+  categoria: string;
+  unidade: string;
+  quantidade: number;
+  estoque_minimo: number;
+  preco_compra: number;
+  observacao: string | null;
+  fornecedor_id: number | null;
+  ultima_entrada: string | null;
+}) {
+  const { error: erroInserir } = await supabase.from("produtos").insert({
+    id: produto.produto_id,
+    codigo: produto.codigo,
+    descricao: produto.descricao,
+    categoria: produto.categoria,
+    unidade: produto.unidade,
+    quantidade: produto.quantidade,
+    estoque_minimo: produto.estoque_minimo,
+    preco_compra: produto.preco_compra,
+    observacao: produto.observacao,
+    fornecedor_id: produto.fornecedor_id,
+    ultima_entrada: produto.ultima_entrada,
+  });
 
   if (erroInserir) {
-    console.error(
-      erroInserir
-    );
+    console.error(erroInserir);
     throw erroInserir;
   }
 
-  const { error: erroExcluir } =
-    await supabase
-      .from("lixeira")
-      .delete()
-      .eq("id", produto.id);
+  const { error: erroExcluir } = await supabase.from("lixeira").delete().eq("id", produto.id);
 
   if (erroExcluir) {
-    console.error(
-      erroExcluir
-    );
+    console.error(erroExcluir);
     throw erroExcluir;
   }
 
-  // Atualiza a sequência da tabela produtos
-  await supabase.rpc(
-    "reset_produtos_sequence"
-  );
+  await supabase.rpc("reset_produtos_sequence");
 }
 
-export async function excluirLixeira(
-  id: number
-) {
-  const { error } = await supabase
-    .from("lixeira")
-    .delete()
-    .eq("id", id);
+export async function excluirLixeira(id: number) {
+  const { error } = await supabase.from("lixeira").delete().eq("id", id);
 
   if (error) {
     console.error(error);
     throw error;
   }
 }
+

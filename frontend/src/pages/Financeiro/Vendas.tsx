@@ -2,31 +2,17 @@ import { useEffect, useState } from "react";
 
 import type { Venda } from "../../types/Venda";
 import type { VendaParcela } from "../../types/VendaParcela";
-
-import {
-  atualizarStatusVenda,
-  atualizarVenda,
-  buscarVendas,
-  excluirVenda,
-  inserirVenda,
-} from "../../services/vendaSupabase";
-
-import {
-  salvarParcelasVenda,
-} from "../../services/vendaParcelaSupabase";
-
+import { atualizarStatusVenda, atualizarVenda, buscarVendas, excluirVenda, inserirVenda } from "../../services/vendaSupabase";
+import { salvarParcelasVenda } from "../../services/vendaParcelaSupabase";
 import VendaForm from "../../components/Financeiro/VendaForm";
 import VendaTable from "../../components/Financeiro/VendaTable";
 
 function criarVendaVazia(): Venda {
-  return {
-    data_venda: new Date().toISOString().split("T")[0],
-    cliente: "",
-    valor_total: 0,
-    responsavel: "",
-    status: "A_RECEBER",
-    observacoes: "",
-  };
+  return { data_venda: new Date().toISOString().split("T")[0], cliente: "", valor_total: 0, responsavel: "", status: "A_RECEBER", observacoes: "" };
+}
+
+function mensagemErro(erro: unknown, padrao: string) {
+  return erro instanceof Error && erro.message ? erro.message : padrao;
 }
 
 export default function Vendas() {
@@ -35,52 +21,32 @@ export default function Vendas() {
   const [venda, setVenda] = useState<Venda>(criarVendaVazia);
 
   async function carregarDados() {
-    try {
-      const dados = await buscarVendas();
-      setVendas(dados as Venda[]);
-    } catch (error) {
-      console.error(error);
-      alert("Não foi possível carregar as vendas.");
-    }
+    try { setVendas(await buscarVendas()); }
+    catch (erro) { console.error(erro); alert("Não foi possível carregar as vendas."); }
   }
 
-  useEffect(() => {
-    void carregarDados();
-  }, []);
+  useEffect(() => { void carregarDados(); }, []);
 
   function fecharFormulario() {
     setMostrarFormulario(false);
     setVenda(criarVendaVazia());
   }
 
-  async function salvarVenda(
-    dadosVenda: Venda,
-    parcelas: VendaParcela[]
-  ) {
+  async function salvarVenda(dadosVenda: Venda, parcelas: VendaParcela[]) {
     try {
-      let vendaSalva: Venda;
+      const vendaSalva = dadosVenda.id
+        ? await atualizarVenda(dadosVenda)
+        : await inserirVenda({ ...dadosVenda, status: "A_RECEBER" });
 
-      if (dadosVenda.id) {
-        vendaSalva = await atualizarVenda(dadosVenda);
-      } else {
-        vendaSalva = await inserirVenda({
-          ...dadosVenda,
-          status: "A_RECEBER",
-        });
-      }
-
-      if (!vendaSalva.id) {
-        throw new Error("A venda foi salva sem um identificador.");
-      }
+      if (!vendaSalva.id) throw new Error("A venda foi salva sem um identificador.");
 
       await salvarParcelasVenda(vendaSalva.id, parcelas);
       await atualizarStatusVenda(vendaSalva.id);
-
       await carregarDados();
       fecharFormulario();
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao salvar venda.");
+    } catch (erro) {
+      console.error(erro);
+      alert(mensagemErro(erro, "Erro ao salvar venda."));
     }
   }
 
@@ -91,54 +57,26 @@ export default function Vendas() {
 
   async function removerVenda(item: Venda) {
     if (!item.id) return;
-
-    const confirmar = window.confirm(
-      `Excluir a venda de ${item.cliente}?`
-    );
-
-    if (!confirmar) return;
+    if (!window.confirm(`Excluir a venda de ${item.cliente}?`)) return;
 
     try {
       await excluirVenda(item.id);
       await carregarDados();
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao excluir venda.");
+    } catch (erro) {
+      console.error(erro);
+      alert(mensagemErro(erro, "Erro ao excluir venda."));
     }
   }
 
   return (
     <>
-      <div className="flex justify-between items-center mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <h1 className="text-4xl font-bold text-blue-900">Vendas</h1>
-
-        <button
-          type="button"
-          onClick={() => {
-            setVenda(criarVendaVazia());
-            setMostrarFormulario(true);
-          }}
-          className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg"
-        >
-          Nova venda
-        </button>
+        <button type="button" onClick={() => { setVenda(criarVendaVazia()); setMostrarFormulario(true); }} className="rounded-lg bg-blue-700 px-5 py-3 text-white hover:bg-blue-800">Nova venda</button>
       </div>
-
-      {mostrarFormulario && (
-        <VendaForm
-          venda={venda}
-          setVenda={setVenda}
-          onSalvar={salvarVenda}
-          onCancelar={fecharFormulario}
-        />
-      )}
-
-      <VendaTable
-        vendas={vendas}
-        onEditar={editarVenda}
-        onExcluir={removerVenda}
-        onAtualizar={carregarDados}
-      />
+      {mostrarFormulario && <VendaForm venda={venda} setVenda={setVenda} onSalvar={salvarVenda} onCancelar={fecharFormulario} />}
+      <VendaTable vendas={vendas} onEditar={editarVenda} onExcluir={removerVenda} onAtualizar={carregarDados} />
     </>
   );
 }
+

@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 
-import useUsuario from "../../hooks/useUsuario";
+import { useAuth } from "../../contexts/AuthContext";
 
 type Perfil = "DESENVOLVEDOR" | "GERENCIAL" | "OPERADOR";
 
@@ -10,22 +10,17 @@ interface Props {
   perfis?: Perfil[];
 }
 
-export default function ProtectedRoute({
-  children,
-  perfil,
-  perfis,
-}: Props) {
-  const usuario = useUsuario();
+export default function ProtectedRoute({ children, perfil, perfis }: Props) {
+  const { usuario, carregando } = useAuth();
   const perfisPermitidos = perfis ?? (perfil ? [perfil] : []);
 
-  if (!usuario) {
-    return <Navigate to="/" replace />;
+  if (carregando) {
+    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
   }
 
-  if (
-    perfisPermitidos.length > 0 &&
-    !perfisPermitidos.includes(usuario.perfil)
-  ) {
+  if (!usuario) return <Navigate to="/" replace />;
+
+  if (perfisPermitidos.length > 0 && !perfisPermitidos.includes(usuario.perfil)) {
     return <Navigate to="/dashboard" replace />;
   }
 

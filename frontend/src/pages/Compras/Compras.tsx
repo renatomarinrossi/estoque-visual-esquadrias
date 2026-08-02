@@ -226,7 +226,7 @@ export default function Compras() {
                   return (
                     <tr
                       key={
-                        produto.codigo
+                        produto.id
                       }
                       className="border-b"
                     >

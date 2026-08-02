@@ -1,29 +1,8 @@
-export interface UsuarioLogado {
-  id: number;
+import { useAuth } from "../contexts/AuthContext";
 
-  nome: string;
-
-  login: string;
-
-  perfil:
-    | "DESENVOLVEDOR"
-    | "GERENCIAL"
-    | "OPERADOR";
-
-  ativo: boolean;
-}
+export type { UsuarioLogado } from "../types/usuario";
 
 export default function useUsuario() {
-  const usuario =
-    sessionStorage.getItem(
-      "visual_usuario"
-    );
-
-  if (!usuario) {
-    return null;
-  }
-
-  return JSON.parse(
-    usuario
-  ) as UsuarioLogado;
+  return useAuth().usuario;
 }
+
