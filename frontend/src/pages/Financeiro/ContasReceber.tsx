@@ -34,13 +34,41 @@ function corStatus(status: ContaReceber["status"]) {
     : "text-yellow-600";
 }
 
+function hoje() {
+  return dataParaISO(new Date());
+}
+
+function dataParaISO(data: Date) {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const dia = String(data.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
+
+function adicionarDias(data: string, quantidade: number) {
+  const [ano, mes, dia] = data.split("-").map(Number);
+  const resultado = new Date(ano, mes - 1, dia);
+  resultado.setDate(resultado.getDate() + quantidade);
+  return dataParaISO(resultado);
+}
+
 export default function ContasReceber() {
+  const criarFiltrosPadrao = () => {
+    const dataInicialPadrao = hoje();
+    return {
+      dataInicial: dataInicialPadrao,
+      dataFinal: adicionarDias(dataInicialPadrao, 15),
+      cliente: "",
+      formaPagamento: "" as "" | FormaPagamento,
+    };
+  };
   const [contas, setContas] = useState<ContaReceber[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [dataInicial, setDataInicial] = useState("");
-  const [dataFinal, setDataFinal] = useState("");
+  const [dataInicial, setDataInicial] = useState(() => hoje());
+  const [dataFinal, setDataFinal] = useState(() => adicionarDias(hoje(), 15));
   const [cliente, setCliente] = useState("");
   const [formaPagamento, setFormaPagamento] = useState<"" | FormaPagamento>("");
+  const [filtrosAplicados, setFiltrosAplicados] = useState(criarFiltrosPadrao);
 
   async function carregarContas() {
     setCarregando(true);
@@ -60,24 +88,26 @@ export default function ContasReceber() {
   }, []);
 
   const contasFiltradas = useMemo(() => {
-    const termoCliente = cliente.trim().toLocaleLowerCase("pt-BR");
+    const termoCliente = filtrosAplicados.cliente.trim().toLocaleLowerCase("pt-BR");
 
     return contas.filter((conta) => {
       const ehCondicionado =
         conta.forma_pagamento === "CONDICIONADO_ENTREGA";
-      const dataInicialOk =
-        ehCondicionado || !dataInicial || conta.data_vencimento >= dataInicial;
-      const dataFinalOk =
-        ehCondicionado || !dataFinal || conta.data_vencimento <= dataFinal;
       const clienteOk =
         !termoCliente ||
         conta.cliente.toLocaleLowerCase("pt-BR").includes(termoCliente);
       const formaOk =
-        !formaPagamento || conta.forma_pagamento === formaPagamento;
+        !filtrosAplicados.formaPagamento || conta.forma_pagamento === filtrosAplicados.formaPagamento;
+      const estaAtrasada =
+        !ehCondicionado && conta.data_vencimento < hoje();
+      const dataInicialOk =
+        ehCondicionado || estaAtrasada || !filtrosAplicados.dataInicial || conta.data_vencimento >= filtrosAplicados.dataInicial;
+      const dataFinalOk =
+        ehCondicionado || estaAtrasada || !filtrosAplicados.dataFinal || conta.data_vencimento <= filtrosAplicados.dataFinal;
 
       return dataInicialOk && dataFinalOk && clienteOk && formaOk;
     });
-  }, [cliente, contas, dataFinal, dataInicial, formaPagamento]);
+  }, [contas, filtrosAplicados]);
 
   const totalAReceber = contasFiltradas.reduce(
     (total, conta) =>
@@ -86,7 +116,7 @@ export default function ContasReceber() {
         : total + conta.saldo,
     0
   );
-  const hoje = new Date().toISOString().split("T")[0];
+  const dataDeHoje = hoje();
   const contasCondicionadas = contasFiltradas.filter(
     (conta) => conta.forma_pagamento === "CONDICIONADO_ENTREGA"
   );
@@ -96,19 +126,30 @@ export default function ContasReceber() {
   const contasAtrasadas = contasFiltradas.filter(
     (conta) =>
       conta.forma_pagamento !== "CONDICIONADO_ENTREGA" &&
-      conta.data_vencimento < hoje
+      conta.data_vencimento < dataDeHoje
   );
   const contasEmDia = contasNormais.filter(
-    (conta) => conta.data_vencimento >= hoje
+    (conta) => conta.data_vencimento >= dataDeHoje
   );
   const totalVencido = contasAtrasadas
     .reduce((total, conta) => total + conta.saldo, 0);
 
   function limparFiltros() {
-    setDataInicial("");
-    setDataFinal("");
+    const filtrosPadrao = criarFiltrosPadrao();
+    setDataInicial(filtrosPadrao.dataInicial);
+    setDataFinal(filtrosPadrao.dataFinal);
     setCliente("");
     setFormaPagamento("");
+    setFiltrosAplicados(filtrosPadrao);
+  }
+
+  function aplicarFiltros() {
+    if (dataInicial && dataFinal && dataInicial > dataFinal) {
+      alert("A data inicial não pode ser maior que a data final.");
+      return;
+    }
+
+    setFiltrosAplicados({ dataInicial, dataFinal, cliente, formaPagamento });
   }
 
   function gerarRelatorio() {
@@ -122,8 +163,8 @@ export default function ContasReceber() {
 
     doc.setFontSize(10);
     doc.text(
-      `Período: ${dataInicial ? formatarData(dataInicial) : "Início"} até ${
-        dataFinal ? formatarData(dataFinal) : "Hoje"
+      `Período: ${filtrosAplicados.dataInicial ? formatarData(filtrosAplicados.dataInicial) : "Início"} até ${
+        filtrosAplicados.dataFinal ? formatarData(filtrosAplicados.dataFinal) : "Hoje"
       }`,
       14,
       36
@@ -341,13 +382,22 @@ export default function ContasReceber() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={limparFiltros}
-          className="mt-5 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
-        >
-          Limpar filtros
-        </button>
+        <div className="mt-5 flex gap-3">
+          <button
+            type="button"
+            onClick={aplicarFiltros}
+            className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg"
+          >
+            Aplicar filtros
+          </button>
+          <button
+            type="button"
+            onClick={limparFiltros}
+            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+          >
+            Limpar filtros
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-md p-6 mb-6 border border-red-200">
@@ -528,3 +578,4 @@ export default function ContasReceber() {
     </>
   );
 }
+
