@@ -1,105 +1,69 @@
 import { useEffect, useState } from "react";
 
-type Props = {
-  produtos: any[];
-  onSelecionar: (produto: any) => void;
+export type ProdutoBuscavel = {
+  id: number;
+  codigo: string;
+  descricao: string;
 };
 
-export default function BuscaProduto({
-  produtos,
-  onSelecionar,
-}: Props) {
-  const [texto, setTexto] =
-    useState("");
+type Props = {
+  produtos: ProdutoBuscavel[];
+  onSelecionar: (produto: ProdutoBuscavel) => void;
+};
 
-  const [resultados, setResultados] =
-    useState<any[]>([]);
+export default function BuscaProduto({ produtos, onSelecionar }: Props) {
+  const [texto, setTexto] = useState("");
+  const [resultados, setResultados] = useState<ProdutoBuscavel[]>([]);
 
   useEffect(() => {
-    if (!texto.trim()) {
+    const termo = texto.trim().toLocaleLowerCase("pt-BR");
+
+    if (!termo) {
       setResultados([]);
       return;
     }
 
-    const filtrados =
-      produtos.filter((produto) =>
-        produto.descricao
-          .toLowerCase()
-          .includes(
-            texto.toLowerCase()
-          )
-      );
+    const filtrados = produtos.filter((produto) => {
+      const codigo = produto.codigo.toLocaleLowerCase("pt-BR");
+      const descricao = produto.descricao.toLocaleLowerCase("pt-BR");
 
-    setResultados(
-      filtrados.slice(0, 15)
-    );
-  }, [texto, produtos]);
+      return codigo.includes(termo) || descricao.includes(termo);
+    });
 
-  function selecionarProduto(
-    produto: any
-  ) {
-    setTexto(
-      `${produto.codigo} - ${produto.descricao}`
-    );
+    setResultados(filtrados.slice(0, 15));
+  }, [produtos, texto]);
 
+  function selecionarProduto(produto: ProdutoBuscavel) {
+    setTexto(`${produto.codigo} - ${produto.descricao}`);
     setResultados([]);
-
     onSelecionar(produto);
   }
 
   return (
     <div className="relative">
-
       <input
         type="text"
         placeholder="Pesquisar produto..."
         value={texto}
-        onChange={(e) =>
-          setTexto(
-            e.target.value
-          )
-        }
+        onChange={(event) => setTexto(event.target.value)}
         className="w-full border rounded-lg p-2"
       />
 
       {resultados.length > 0 && (
-
-        <div className="absolute z-50 bg-white border rounded-lg shadow-lg w-full max-h-72 overflow-y-auto">
-
-          {resultados.map(
-            (produto) => (
-
-              <div
-                key={
-                  produto.id
-                }
-                onClick={() =>
-                  selecionarProduto(
-                    produto
-                  )
-                }
-                className="p-2 cursor-pointer hover:bg-slate-100"
-              >
-                <strong>
-                  {
-                    produto.codigo
-                  }
-                </strong>
-
-                {" - "}
-
-                {
-                  produto.descricao
-                }
-              </div>
-
-            )
-          )}
-
+        <div className="absolute z-50 w-full max-h-72 overflow-y-auto rounded-lg border bg-white shadow-lg">
+          {resultados.map((produto) => (
+            <button
+              key={produto.id}
+              type="button"
+              onClick={() => selecionarProduto(produto)}
+              className="block w-full p-2 text-left hover:bg-slate-100"
+            >
+              <strong>{produto.codigo}</strong> - {produto.descricao}
+            </button>
+          ))}
         </div>
-
       )}
-
     </div>
   );
 }
+

@@ -1,99 +1,59 @@
 import { supabase } from "./supabase";
 
-export async function buscarFornecedores() {
+import type { Fornecedor } from "../types/fornecedor";
+
+export async function buscarFornecedores(): Promise<Fornecedor[]> {
   const { data, error } = await supabase
     .from("fornecedores")
     .select("*")
     .order("nome_fantasia");
 
-  if (error) {
-    console.error(error);
-    return [];
-  }
+  if (error) throw error;
 
-  return data;
+  return (data ?? []) as Fornecedor[];
 }
 
-export async function inserirFornecedor(
-  fornecedor: any
-) {
+function dadosFornecedor(fornecedor: Fornecedor) {
+  return {
+    razao_social: fornecedor.razao_social,
+    nome_fantasia: fornecedor.nome_fantasia,
+    categoria: fornecedor.categoria,
+    contato: fornecedor.contato,
+    telefone: fornecedor.telefone,
+    whatsapp: fornecedor.whatsapp,
+    email: fornecedor.email,
+    cidade: fornecedor.cidade,
+    estado: fornecedor.estado,
+    observacoes: fornecedor.observacoes,
+  };
+}
+
+export async function inserirFornecedor(fornecedor: Fornecedor) {
   const { error } = await supabase
     .from("fornecedores")
-    .insert({
-      razao_social:
-        fornecedor.razao_social,
-      nome_fantasia:
-        fornecedor.nome_fantasia,
-      categoria:
-        fornecedor.categoria,
-      contato:
-        fornecedor.contato,
-      telefone:
-        fornecedor.telefone,
-      whatsapp:
-        fornecedor.whatsapp,
-      email:
-        fornecedor.email,
-      cidade:
-        fornecedor.cidade,
-      estado:
-        fornecedor.estado,
-      observacoes:
-        fornecedor.observacoes,
-    });
+    .insert(dadosFornecedor(fornecedor));
 
-  if (error) {
-    console.error(error);
-    throw error;
-  }
+  if (error) throw error;
 }
 
 export async function atualizarFornecedor(
   id: number,
-  fornecedor: any
+  fornecedor: Fornecedor
 ) {
   const { error } = await supabase
     .from("fornecedores")
-    .update({
-      razao_social:
-        fornecedor.razao_social,
-      nome_fantasia:
-        fornecedor.nome_fantasia,
-      categoria:
-        fornecedor.categoria,
-      contato:
-        fornecedor.contato,
-      telefone:
-        fornecedor.telefone,
-      whatsapp:
-        fornecedor.whatsapp,
-      email:
-        fornecedor.email,
-      cidade:
-        fornecedor.cidade,
-      estado:
-        fornecedor.estado,
-      observacoes:
-        fornecedor.observacoes,
-    })
+    .update(dadosFornecedor(fornecedor))
     .eq("id", id);
 
-  if (error) {
-    console.error(error);
-    throw error;
-  }
+  if (error) throw error;
 }
 
-export async function excluirFornecedor(
-  id: number
-) {
+export async function excluirFornecedor(id: number) {
   const { error } = await supabase
     .from("fornecedores")
     .delete()
     .eq("id", id);
 
-  if (error) {
-    console.error(error);
-    throw error;
-  }
+  if (error) throw error;
 }
+
