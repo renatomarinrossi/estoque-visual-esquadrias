@@ -1,199 +1,76 @@
 import { supabase } from "./supabase";
 
-import {
-  atualizarStatusParcela,
-} from "./vendaParcelaSupabase";
-
-import {
-  atualizarStatusVenda,
-} from "./vendaSupabase";
-
 export type VendaRecebimento = {
   id?: number;
-
   parcela_id: number;
-
   data_recebimento: string;
-
   valor: number;
-
   observacao?: string;
-
   created_at?: string;
 };
 
 export async function buscarRecebimentosParcela(
   parcelaId: number
-) {
+): Promise<VendaRecebimento[]> {
+  const { data, error } = await supabase
+    .from("vendas_recebimentos")
+    .select("*")
+    .eq("parcela_id", parcelaId)
+    .order("data_recebimento", { ascending: true });
 
-  const { data, error } =
-    await supabase
-      .from("vendas_recebimentos")
-      .select("*")
-      .eq("parcela_id", parcelaId)
-      .order("data_recebimento", {
-        ascending: true,
-      });
+  if (error) throw error;
 
-  if (error) {
-
-    console.error(error);
-
-    return [];
-
-  }
-
-  return data;
-
+  return (data ?? []) as VendaRecebimento[];
 }
 
-export async function calcularTotalRecebido(
-  parcelaId: number
-) {
-
-  const recebimentos =
-    await buscarRecebimentosParcela(
-      parcelaId
-    );
+export async function calcularTotalRecebido(parcelaId: number): Promise<number> {
+  const recebimentos = await buscarRecebimentosParcela(parcelaId);
 
   return recebimentos.reduce(
-
-    (total: number, item: any) =>
-
-      total + Number(item.valor),
-
+    (total, recebimento) => total + Number(recebimento.valor),
     0
-
   );
-
 }
 
 export async function inserirRecebimento(
   recebimento: VendaRecebimento
-) {
-
-  const { error } =
-    await supabase
-      .from("vendas_recebimentos")
-      .insert({
-
-        parcela_id:
-          recebimento.parcela_id,
-
-        data_recebimento:
-          recebimento.data_recebimento,
-
-        valor:
-          recebimento.valor,
-
-        observacao:
-          recebimento.observacao,
-
-      });
-
-  if (error) {
-
-    console.error(error);
-
-    throw error;
-
+): Promise<void> {
+  if (!recebimento.parcela_id) {
+    throw new Error("Informe a parcela do recebimento.");
   }
 
-  const resultado =
-    await atualizarStatusParcela(
-      recebimento.parcela_id
-    );
+  const { error } = await supabase.rpc("registrar_recebimento", {
+    p_parcela_id: recebimento.parcela_id,
+    p_data_recebimento: recebimento.data_recebimento,
+    p_valor: Number(recebimento.valor),
+    p_observacao: recebimento.observacao?.trim() || null,
+  });
 
-  await atualizarStatusVenda(
-    resultado.vendaId
-  );
-
-}
-
-export async function excluirRecebimento(
-  id: number
-) {
-
-  const { data } =
-    await supabase
-      .from("vendas_recebimentos")
-      .select("parcela_id")
-      .eq("id", id)
-      .single();
-
-  const { error } =
-    await supabase
-      .from("vendas_recebimentos")
-      .delete()
-      .eq("id", id);
-
-  if (error) {
-
-    console.error(error);
-
-    throw error;
-
-  }
-
-  if (data?.parcela_id) {
-
-    const resultado =
-      await atualizarStatusParcela(
-        data.parcela_id
-      );
-
-    await atualizarStatusVenda(
-      resultado.vendaId
-    );
-
-  }
-
+  if (error) throw error;
 }
 
 export async function editarRecebimento(
   recebimento: VendaRecebimento
-) {
-
+): Promise<void> {
   if (!recebimento.id) {
-
-    throw new Error(
-      "Recebimento sem ID."
-    );
-
+    throw new Error("Recebimento sem ID.");
   }
 
-  const { error } =
-    await supabase
-      .from("vendas_recebimentos")
-      .update({
+  const { error } = await supabase.rpc("alterar_recebimento", {
+    p_recebimento_id: recebimento.id,
+    p_data_recebimento: recebimento.data_recebimento,
+    p_valor: Number(recebimento.valor),
+    p_observacao: recebimento.observacao?.trim() || null,
+  });
 
-        data_recebimento:
-          recebimento.data_recebimento,
-
-        valor:
-          recebimento.valor,
-
-        observacao:
-          recebimento.observacao,
-
-      })
-      .eq("id", recebimento.id);
-
-  if (error) {
-
-    console.error(error);
-
-    throw error;
-
-  }
-
-  const resultado =
-    await atualizarStatusParcela(
-      recebimento.parcela_id
-    );
-
-  await atualizarStatusVenda(
-    resultado.vendaId
-  );
-
+  if (error) throw error;
 }
+
+export async function excluirRecebimento(id: number): Promise<void> {
+  const { error } = await supabase.rpc("excluir_recebimento", {
+    p_recebimento_id: id,
+  });
+
+  if (error) throw error;
+}
+
