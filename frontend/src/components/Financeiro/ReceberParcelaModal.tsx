@@ -2,19 +2,22 @@ import { useEffect, useState } from "react";
 
 type Props = {
   aberto: boolean;
-
   valorParcela: number;
-
   totalRecebido: number;
-
   onCancelar: () => void;
-
-  onConfirmar: (
-    data: string,
-    valor: number,
-    observacao: string
-  ) => void;
+  onConfirmar: (data: string, valor: number, observacao: string) => void;
 };
+
+function dataDeHoje() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function formatarMoeda(valor: number) {
+  return valor.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
 
 export default function ReceberParcelaModal({
   aberto,
@@ -23,217 +26,94 @@ export default function ReceberParcelaModal({
   onCancelar,
   onConfirmar,
 }: Props) {
-
-  const hoje = new Date()
-    .toISOString()
-    .split("T")[0];
-
-  const saldo =
-    valorParcela - totalRecebido;
-
-  const [dataRecebimento, setDataRecebimento] =
-    useState(hoje);
-
-  const [valorRecebido, setValorRecebido] =
-    useState(saldo);
-
-  const [observacao, setObservacao] =
-    useState("");
+  const saldo = valorParcela - totalRecebido;
+  const [dataRecebimento, setDataRecebimento] = useState(dataDeHoje);
+  const [valorRecebido, setValorRecebido] = useState(saldo);
+  const [observacao, setObservacao] = useState("");
 
   useEffect(() => {
+    if (!aberto) return;
 
     setValorRecebido(saldo);
-
-    setDataRecebimento(hoje);
-
+    setDataRecebimento(dataDeHoje());
     setObservacao("");
-
   }, [aberto, saldo]);
 
   if (!aberto) return null;
 
   return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-[520px] rounded-xl bg-white p-6 shadow-xl">
+        <h2 className="mb-6 text-2xl font-bold text-blue-900">Receber Parcela</h2>
 
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-      <div className="bg-white rounded-xl shadow-xl w-[520px] p-6">
-
-        <h2 className="text-2xl font-bold text-blue-900 mb-6">
-
-          Receber Parcela
-
-        </h2>
-
-        <div className="grid grid-cols-3 gap-4 mb-6">
-
+        <div className="mb-6 grid grid-cols-3 gap-4">
           <div>
-
-            <div className="text-sm text-gray-500">
-
-              Valor da Parcela
-
-            </div>
-
-            <div className="font-bold text-lg">
-
-              {valorParcela.toLocaleString(
-                "pt-BR",
-                {
-                  style: "currency",
-                  currency: "BRL",
-                }
-              )}
-
-            </div>
-
+            <div className="text-sm text-gray-500">Valor da Parcela</div>
+            <div className="text-lg font-bold">{formatarMoeda(valorParcela)}</div>
           </div>
-
           <div>
-
-            <div className="text-sm text-gray-500">
-
-              Já Recebido
-
+            <div className="text-sm text-gray-500">Já Recebido</div>
+            <div className="text-lg font-bold text-green-700">
+              {formatarMoeda(totalRecebido)}
             </div>
-
-            <div className="font-bold text-green-700 text-lg">
-
-              {totalRecebido.toLocaleString(
-                "pt-BR",
-                {
-                  style: "currency",
-                  currency: "BRL",
-                }
-              )}
-
-            </div>
-
           </div>
-
           <div>
-
-            <div className="text-sm text-gray-500">
-
-              Saldo
-
+            <div className="text-sm text-gray-500">Saldo</div>
+            <div className="text-lg font-bold text-orange-600">
+              {formatarMoeda(saldo)}
             </div>
-
-            <div className="font-bold text-orange-600 text-lg">
-
-              {saldo.toLocaleString(
-                "pt-BR",
-                {
-                  style: "currency",
-                  currency: "BRL",
-                }
-              )}
-
-            </div>
-
           </div>
-
         </div>
 
         <div className="space-y-4">
-
           <div>
-
-            <label className="block mb-2 font-semibold">
-
-              Data do Recebimento
-
-            </label>
-
+            <label className="mb-2 block font-semibold">Data do Recebimento</label>
             <input
               type="date"
               value={dataRecebimento}
-              onChange={(e) =>
-                setDataRecebimento(
-                  e.target.value
-                )
-              }
-              className="w-full border rounded-lg p-3"
+              onChange={(event) => setDataRecebimento(event.target.value)}
+              className="w-full rounded-lg border p-3"
             />
-
           </div>
-
           <div>
-
-            <label className="block mb-2 font-semibold">
-
-              Valor deste Recebimento
-
-            </label>
-
+            <label className="mb-2 block font-semibold">Valor deste Recebimento</label>
             <input
               type="number"
               step="0.01"
               value={valorRecebido}
-              onChange={(e) =>
-                setValorRecebido(
-                  Number(e.target.value)
-                )
-              }
-              className="w-full border rounded-lg p-3"
+              onChange={(event) => setValorRecebido(Number(event.target.value))}
+              className="w-full rounded-lg border p-3"
             />
-
           </div>
-
           <div>
-
-            <label className="block mb-2 font-semibold">
-
-              Observação
-
-            </label>
-
+            <label className="mb-2 block font-semibold">Observação</label>
             <textarea
               rows={4}
               value={observacao}
-              onChange={(e) =>
-                setObservacao(
-                  e.target.value
-                )
-              }
-              className="w-full border rounded-lg p-3"
+              onChange={(event) => setObservacao(event.target.value)}
+              className="w-full rounded-lg border p-3"
             />
-
           </div>
-
         </div>
 
-        <div className="flex justify-end gap-3 mt-8">
-
+        <div className="mt-8 flex justify-end gap-3">
           <button
+            type="button"
             onClick={onCancelar}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-5 py-2 rounded-lg"
+            className="rounded-lg bg-gray-500 px-5 py-2 text-white hover:bg-gray-600"
           >
-
             Cancelar
-
           </button>
-
           <button
-            onClick={() =>
-              onConfirmar(
-                dataRecebimento,
-                valorRecebido,
-                observacao
-              )
-            }
-            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg"
+            type="button"
+            onClick={() => onConfirmar(dataRecebimento, valorRecebido, observacao)}
+            className="rounded-lg bg-green-600 px-5 py-2 text-white hover:bg-green-700"
           >
-
             Confirmar
-
           </button>
-
         </div>
-
       </div>
-
     </div>
-
   );
-
 }
+

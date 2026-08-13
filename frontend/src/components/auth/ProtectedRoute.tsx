@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 type Perfil = "DESENVOLVEDOR" | "GERENCIAL" | "OPERADOR";
 
@@ -15,12 +15,19 @@ export default function ProtectedRoute({ children, perfil, perfis }: Props) {
   const perfisPermitidos = perfis ?? (perfil ? [perfil] : []);
 
   if (carregando) {
-    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        Carregando...
+      </div>
+    );
   }
 
   if (!usuario) return <Navigate to="/" replace />;
 
-  if (perfisPermitidos.length > 0 && !perfisPermitidos.includes(usuario.perfil)) {
+  if (
+    perfisPermitidos.length > 0 &&
+    !perfisPermitidos.includes(usuario.perfil)
+  ) {
     return <Navigate to="/dashboard" replace />;
   }
 

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState, type ReactNode } from "react";
 
 import { buscarUsuarioAutenticado, sairDoSistema } from "../services/authUsuario";
 import { supabase } from "../services/supabase";
@@ -11,7 +11,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<UsuarioLogado | null>(null);
   const [carregando, setCarregando] = useState(true);
 
@@ -52,13 +52,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useAuth() {
-  const contexto = useContext(AuthContext);
-
-  if (!contexto) {
-    throw new Error("useAuth deve ser usado dentro de AuthProvider.");
-  }
-
-  return contexto;
-}
+export { AuthContext };
 

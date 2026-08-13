@@ -116,15 +116,21 @@ export default function Produtos() {
   const produtosFiltrados = useMemo(() => {
     const texto = pesquisa.trim().toLocaleLowerCase("pt-BR");
 
-    return produtos.filter((produto) => {
-      const pesquisaOk =
-        !texto ||
-        produto.codigo.toLocaleLowerCase("pt-BR").includes(texto) ||
-        produto.descricao.toLocaleLowerCase("pt-BR").includes(texto);
-      const categoriaOk = categoria === "Todas" || produto.categoria === categoria;
+    return produtos
+      .filter((produto) => {
+        const pesquisaOk =
+          !texto ||
+          produto.codigo.toLocaleLowerCase("pt-BR").includes(texto) ||
+          produto.descricao.toLocaleLowerCase("pt-BR").includes(texto);
+        const categoriaOk = categoria === "Todas" || produto.categoria === categoria;
 
-      return pesquisaOk && categoriaOk;
-    });
+        return pesquisaOk && categoriaOk;
+      })
+      .sort((produtoA, produtoB) =>
+        produtoA.descricao.localeCompare(produtoB.descricao, "pt-BR", {
+          sensitivity: "base",
+        })
+      );
   }, [categoria, pesquisa, produtos]);
 
   function gerarPDF() {

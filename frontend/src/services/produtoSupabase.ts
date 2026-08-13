@@ -22,7 +22,7 @@ export async function buscarProdutos() {
     .from("produtos")
     .select("*")
     .is("excluido_em", null)
-    .order("id", { ascending: true });
+    .order("descricao", { ascending: true });
 
   if (error) throw error;
 

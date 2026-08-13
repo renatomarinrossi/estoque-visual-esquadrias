@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   buscarMovimentacoesEstoque,
@@ -13,33 +13,39 @@ function formatarData(data: string) {
   }).format(new Date(data));
 }
 
+function criarFiltrosIniciais(): FiltrosMovimentacao {
+  const agora = new Date();
+
+  return {
+    dataInicial: new Date(agora.getFullYear(), agora.getMonth(), 1)
+      .toISOString()
+      .slice(0, 10),
+    dataFinal: agora.toISOString().slice(0, 10),
+    produto: "",
+    tipo: "",
+  };
+}
+
 export default function Movimentacoes() {
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoEstoque[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [filtros, setFiltros] = useState<FiltrosMovimentacao>({
-    dataInicial: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-      .toISOString()
-      .slice(0, 10),
-    dataFinal: new Date().toISOString().slice(0, 10),
-    produto: "",
-    tipo: "",
-  });
+  const [filtros, setFiltros] = useState<FiltrosMovimentacao>(criarFiltrosIniciais);
 
-  async function carregar() {
+  const carregar = useCallback(async (filtrosDaConsulta: FiltrosMovimentacao) => {
     setCarregando(true);
     try {
-      setMovimentacoes(await buscarMovimentacoesEstoque(filtros));
+      setMovimentacoes(await buscarMovimentacoesEstoque(filtrosDaConsulta));
     } catch (erro) {
       console.error(erro);
       alert("Não foi possível carregar as movimentações.");
     } finally {
       setCarregando(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    void carregar();
-  }, []);
+    void carregar(criarFiltrosIniciais());
+  }, [carregar]);
 
   function atualizarFiltro(campo: keyof FiltrosMovimentacao, valor: string) {
     setFiltros((atual) => ({ ...atual, [campo]: valor }));
@@ -81,7 +87,7 @@ export default function Movimentacoes() {
             </select>
           </div>
           <div className="flex items-end gap-2">
-            <button type="button" onClick={() => void carregar()} className="rounded-lg bg-blue-700 px-4 py-2 text-white hover:bg-blue-800">Filtrar</button>
+            <button type="button" onClick={() => void carregar(filtros)} className="rounded-lg bg-blue-700 px-4 py-2 text-white hover:bg-blue-800">Filtrar</button>
             <button type="button" onClick={limparFiltros} className="rounded-lg bg-slate-500 px-4 py-2 text-white hover:bg-slate-600">Limpar</button>
           </div>
         </div>
