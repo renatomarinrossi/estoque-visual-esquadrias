@@ -3,13 +3,10 @@ import { type FormEvent, useEffect, useMemo, useState } from "react";
 import type { Venda } from "../../types/Venda";
 import type { VendaParcela } from "../../types/VendaParcela";
 import {
-  atualizarStatusVenda,
-  atualizarVenda,
   buscarVendas,
   excluirVenda,
-  inserirVenda,
+  salvarVendaComParcelas,
 } from "../../services/vendaSupabase";
-import { salvarParcelasVenda } from "../../services/vendaParcelaSupabase";
 import VendaForm from "../../components/Financeiro/VendaForm";
 import VendaTable from "../../components/Financeiro/VendaTable";
 
@@ -75,16 +72,7 @@ export default function Vendas() {
 
   async function salvarVenda(dadosVenda: Venda, parcelas: VendaParcela[]) {
     try {
-      const vendaSalva = dadosVenda.id
-        ? await atualizarVenda(dadosVenda)
-        : await inserirVenda({ ...dadosVenda, status: "A_RECEBER" });
-
-      if (!vendaSalva.id) {
-        throw new Error("A venda foi salva sem um identificador.");
-      }
-
-      await salvarParcelasVenda(vendaSalva.id, parcelas);
-      await atualizarStatusVenda(vendaSalva.id);
+      await salvarVendaComParcelas(dadosVenda, parcelas);
       await carregarDados();
       fecharFormulario();
     } catch (erro) {

@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 import { buscarProdutos } from "../../services/produtoSupabase";
+import { carregarGeradorPdf } from "../../services/geradorPdf";
 
 type ProdutoCompra = {
   id: number;
@@ -39,7 +38,8 @@ export default function Compras() {
     [categoria, produtos]
   );
 
-  function gerarPDF() {
+  async function gerarPDF() {
+    const { jsPDF, autoTable } = await carregarGeradorPdf();
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text("Visual Esquadrias", 14, 20);
@@ -96,4 +96,3 @@ export default function Compras() {
     </>
   );
 }
-

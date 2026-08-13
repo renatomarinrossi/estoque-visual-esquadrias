@@ -1,9 +1,8 @@
 import { type FormEvent, useEffect, useMemo, useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import type { ContaPagar, FormaPagamentoContaPagar } from "../../types/ContaPagar";
 import { atualizarContaPagar, buscarContasPagar, confirmarPagamentoContaPagar, excluirContaPagar, inserirContaPagar } from "../../services/contaPagarSupabase";
 import ConfirmarPagamentoModal from "../../components/Financeiro/ConfirmarPagamentoModal";
+import { carregarGeradorPdf } from "../../services/geradorPdf";
 
 const formasPagamento: FormaPagamentoContaPagar[] = ["PIX", "BOLETO", "CHEQUE_FISICA", "CHEQUE_JURIDICA"];
 const dataParaISO = (data: Date) => {
@@ -106,7 +105,8 @@ export default function ContasPagar() {
     catch (erro) { console.error(erro); alert(erro instanceof Error ? erro.message : "Não foi possível confirmar o pagamento."); }
   }
 
-  function gerarRelatorio() {
+  async function gerarRelatorio() {
+    const { jsPDF, autoTable } = await carregarGeradorPdf();
     const doc = new jsPDF();
     doc.setFontSize(18); doc.text("Estoque Visual Esquadrias", 14, 18);
     doc.setFontSize(13); doc.text("Relatório de Contas a Pagar", 14, 27);

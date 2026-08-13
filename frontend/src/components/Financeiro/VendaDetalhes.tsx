@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 import type { Venda } from "../../types/Venda";
 import type { VendaParcela } from "../../types/VendaParcela";
@@ -14,6 +12,7 @@ import {
 } from "../../services/vendaRecebimentoSupabase";
 import EditarRecebimentoModal from "./EditarRecebimentoModal";
 import ReceberParcelaModal from "./ReceberParcelaModal";
+import { carregarGeradorPdf } from "../../services/geradorPdf";
 
 type Props = { venda: Venda; onAtualizar: () => Promise<void> };
 type RecebimentosPorParcela = Record<number, VendaRecebimento[]>;
@@ -131,7 +130,8 @@ export default function VendaDetalhes({ venda, onAtualizar }: Props) {
     }
   }
 
-  function gerarRelatorio() {
+  async function gerarRelatorio() {
+    const { jsPDF, autoTable } = await carregarGeradorPdf();
     const doc = new jsPDF();
     const totalRecebidoVenda = parcelas.reduce((total, parcela) => total + totalRecebido(parcela.id), 0);
     const saldoVenda = Number(venda.valor_total) - totalRecebidoVenda;
@@ -161,7 +161,7 @@ export default function VendaDetalhes({ venda, onAtualizar }: Props) {
       headStyles: { fillColor: [30, 64, 175] },
     });
 
-    const tabelaParcelas = doc as jsPDF & { lastAutoTable?: { finalY: number } };
+    const tabelaParcelas = doc as typeof doc & { lastAutoTable?: { finalY: number } };
     const inicioHistorico = (tabelaParcelas.lastAutoTable?.finalY ?? 62) + 12;
     doc.setFontSize(12);
     doc.text("Histórico de recebimentos", 14, inicioHistorico);

@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 import ProdutoForm from "../../components/produtos/ProdutoForm";
 import ProdutoTable from "../../components/produtos/ProdutoTable";
@@ -12,6 +10,7 @@ import {
   moverParaLixeira,
 } from "../../services/produtoSupabase";
 import { buscarFornecedores } from "../../services/fornecedorSupabase";
+import { carregarGeradorPdf } from "../../services/geradorPdf";
 
 type ProdutoBanco = {
   id: number;
@@ -133,7 +132,8 @@ export default function Produtos() {
       );
   }, [categoria, pesquisa, produtos]);
 
-  function gerarPDF() {
+  async function gerarPDF() {
+    const { jsPDF, autoTable } = await carregarGeradorPdf();
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text("Visual Esquadrias", 14, 20);

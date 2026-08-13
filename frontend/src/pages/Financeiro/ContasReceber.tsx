@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 import type { ContaReceber } from "../../types/ContaReceber";
 import type { FormaPagamento } from "../../types/VendaParcela";
@@ -8,6 +6,7 @@ import type { FormaPagamento } from "../../types/VendaParcela";
 import {
   buscarContasReceber,
 } from "../../services/contasReceberSupabase";
+import { carregarGeradorPdf } from "../../services/geradorPdf";
 
 function formatarMoeda(valor: number) {
   return Number(valor).toLocaleString("pt-BR", {
@@ -152,7 +151,8 @@ export default function ContasReceber() {
     setFiltrosAplicados({ dataInicial, dataFinal, cliente, formaPagamento });
   }
 
-  function gerarRelatorio() {
+  async function gerarRelatorio() {
+    const { jsPDF, autoTable } = await carregarGeradorPdf();
     const doc = new jsPDF();
 
     doc.setFontSize(18);
@@ -206,7 +206,7 @@ export default function ContasReceber() {
       headStyles: { fillColor: [185, 28, 28] },
     });
 
-    const tabelaAtrasadas = doc as jsPDF & {
+    const tabelaAtrasadas = doc as typeof doc & {
       lastAutoTable?: { finalY: number };
     };
     const inicioDemaisContas =
@@ -241,7 +241,7 @@ export default function ContasReceber() {
       headStyles: { fillColor: [30, 64, 175] },
     });
 
-    const tabelaDemaisContas = doc as jsPDF & {
+    const tabelaDemaisContas = doc as typeof doc & {
       lastAutoTable?: { finalY: number };
     };
     const inicioCondicionados =
