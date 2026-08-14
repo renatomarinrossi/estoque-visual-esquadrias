@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
 import type { Fornecedor } from "../../types/fornecedor";
-
 import FornecedorDetalhes from "./FornecedorDetalhes";
 
 type Props = {
@@ -10,176 +9,46 @@ type Props = {
   onExcluir: (fornecedor: Fornecedor) => void;
 };
 
-export default function FornecedorTable({
-  fornecedores,
-  onEditar,
-  onExcluir,
-}: Props) {
-  const [
-    fornecedorExpandido,
-    setFornecedorExpandido,
-  ] = useState<number | null>(
-    null
-  );
+export default function FornecedorTable({ fornecedores, onEditar, onExcluir }: Props) {
+  const [fornecedorExpandido, setFornecedorExpandido] = useState<number | null>(null);
 
-  function alternarFornecedor(
-    id: number
-  ) {
-    if (
-      fornecedorExpandido === id
-    ) {
-      setFornecedorExpandido(
-        null
-      );
-    } else {
-      setFornecedorExpandido(
-        id
-      );
-    }
+  function alternarFornecedor(id: number) {
+    setFornecedorExpandido((atual) => (atual === id ? null : id));
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6">
-
-      <table className="w-full">
-
+    <div className="overflow-x-auto rounded-xl bg-white p-6 shadow-md">
+      <table className="w-full min-w-[780px]">
         <thead>
-
           <tr className="border-b">
-
-            <th className="text-left py-3 w-1/4">
-              Nome
-            </th>
-
-            <th className="w-40">
-              Categoria
-            </th>
-
-            <th className="w-44">
-              Contato
-            </th>
-
-            <th className="w-40">
-              Telefone
-            </th>
-
-            <th className="w-40">
-              Ações
-            </th>
-
+            <th className="w-1/4 border-r border-black py-3 text-left">Nome</th>
+            <th className="w-40 border-r border-black text-center">Categoria</th>
+            <th className="w-44 border-r border-black text-center">Contato</th>
+            <th className="w-40 border-r border-black text-center">Telefone</th>
+            <th className="w-40 text-center">Ações</th>
           </tr>
-
         </thead>
-
         <tbody>
-
-          {fornecedores.map(
-            (fornecedor) => (
-              <>
-                <tr
-                  key={
-                    fornecedor.id
-                  }
-                  className="border-b hover:bg-slate-50"
-                >
-
-                  <td className="py-3">
-
-                    <button
-                      onClick={() =>
-                        alternarFornecedor(
-                          fornecedor.id!
-                        )
-                      }
-                      className="font-semibold text-blue-700 hover:text-blue-900"
-                    >
-
-                      {fornecedorExpandido ===
-                      fornecedor.id
-                        ? "▼ "
-                        : "▶ "}
-
-                      {
-                        fornecedor.nome_fantasia
-                      }
-
-                    </button>
-
-                  </td>
-
-                  <td className="text-center">
-                    {
-                      fornecedor.categoria
-                    }
-                  </td>
-
-                  <td className="text-center">
-                    {
-                      fornecedor.contato
-                    }
-                  </td>
-
-                  <td className="text-center">
-                    {
-                      fornecedor.telefone
-                    }
-                  </td>
-
-                  <td className="flex gap-2 justify-center py-2">
-
-                    <button
-                      onClick={() =>
-                        onEditar(
-                          fornecedor
-                        )
-                      }
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                    >
-                      Editar
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        onExcluir(
-                          fornecedor
-                        )
-                      }
-                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                    >
-                      Excluir
-                    </button>
-
-                  </td>
-
-                </tr>
-
-                {fornecedorExpandido ===
-                  fornecedor.id && (
-                  <tr>
-
-                    <td
-                      colSpan={5}
-                    >
-
-                      <FornecedorDetalhes
-                        fornecedor={
-                          fornecedor
-                        }
-                      />
-
-                    </td>
-
-                  </tr>
-                )}
-
-              </>
-            )
-          )}
-
+          {fornecedores.map((fornecedor) => (
+            <Fragment key={fornecedor.id}>
+              <tr className="border-b hover:bg-slate-50">
+                <td className="border-r border-black py-3">
+                  <button type="button" onClick={() => alternarFornecedor(fornecedor.id!)} className="font-semibold text-blue-700 hover:text-blue-900">
+                    {fornecedorExpandido === fornecedor.id ? "▼ " : "▶ "}{fornecedor.nome_fantasia}
+                  </button>
+                </td>
+                <td className="border-r border-black text-center">{fornecedor.categoria}</td>
+                <td className="border-r border-black text-center">{fornecedor.contato}</td>
+                <td className="border-r border-black text-center">{fornecedor.telefone}</td>
+                <td className="py-2"><div className="flex justify-center gap-1.5"><button type="button" onClick={() => onEditar(fornecedor)} className="rounded-md bg-yellow-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-px hover:bg-yellow-600">Editar</button><button type="button" onClick={() => onExcluir(fornecedor)} className="rounded-md bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-px hover:bg-red-700">Excluir</button></div></td>
+              </tr>
+              {fornecedorExpandido === fornecedor.id && <tr><td colSpan={5}><FornecedorDetalhes fornecedor={fornecedor} /></td></tr>}
+            </Fragment>
+          ))}
         </tbody>
-
       </table>
-
     </div>
   );
 }
+
+

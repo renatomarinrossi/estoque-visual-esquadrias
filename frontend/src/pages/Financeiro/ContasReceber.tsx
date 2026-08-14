@@ -132,6 +132,20 @@ export default function ContasReceber() {
   );
   const totalVencido = contasAtrasadas
     .reduce((total, conta) => total + conta.saldo, 0);
+  const totalNoPeriodo = contasFiltradas
+    .filter((conta) => {
+      if (conta.forma_pagamento === "CONDICIONADO_ENTREGA") return false;
+
+      const respeitaDataInicial =
+        !filtrosAplicados.dataInicial ||
+        conta.data_vencimento >= filtrosAplicados.dataInicial;
+      const respeitaDataFinal =
+        !filtrosAplicados.dataFinal ||
+        conta.data_vencimento <= filtrosAplicados.dataFinal;
+
+      return respeitaDataInicial && respeitaDataFinal;
+    })
+    .reduce((total, conta) => total + conta.saldo, 0);
 
   function limparFiltros() {
     const filtrosPadrao = criarFiltrosPadrao();
@@ -170,15 +184,16 @@ export default function ContasReceber() {
       36
     );
     doc.text(`Total a receber: ${formatarMoeda(totalAReceber)}`, 14, 42);
-    doc.text(`Contas no relatório: ${contasFiltradas.length}`, 14, 48);
+    doc.text(`A receber no período: ${formatarMoeda(totalNoPeriodo)}`, 14, 48);
+    doc.text(`Contas no relatório: ${contasFiltradas.length}`, 14, 54);
 
     doc.setFontSize(12);
     doc.setTextColor(185, 28, 28);
-    doc.text("Contas atrasadas", 14, 56);
+    doc.text("Contas atrasadas", 14, 62);
     doc.setTextColor(0, 0, 0);
 
     autoTable(doc, {
-      startY: 61,
+      startY: 67,
       head: [[
         "Cliente",
         "Parcela",
@@ -210,7 +225,7 @@ export default function ContasReceber() {
       lastAutoTable?: { finalY: number };
     };
     const inicioDemaisContas =
-      (tabelaAtrasadas.lastAutoTable?.finalY ?? 61) + 12;
+      (tabelaAtrasadas.lastAutoTable?.finalY ?? 67) + 12;
 
     doc.setFontSize(12);
     doc.text("Demais contas a receber", 14, inicioDemaisContas);
@@ -447,7 +462,7 @@ export default function ContasReceber() {
                   <td className="text-right font-semibold text-red-700">
                     {formatarMoeda(conta.saldo)}
                   </td>
-                  <td className={`text-center font-bold ${corStatus(conta.status)}`}>
+                  <td className={`text-center text-sm font-bold ${corStatus(conta.status)}`}>
                     {rotulo(conta.status)}
                   </td>
                 </tr>
@@ -458,9 +473,14 @@ export default function ContasReceber() {
       </div>
 
       <div className="bg-white rounded-xl shadow-md p-6 overflow-x-auto">
-        <h2 className="text-xl font-bold text-blue-900 mb-4">
-          Demais contas a receber
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-blue-900">
+            Demais contas a receber
+          </h2>
+          <span className="font-bold text-blue-900">
+            {formatarMoeda(totalNoPeriodo)}
+          </span>
+        </div>
         <table className="w-full min-w-[980px]">
           <thead>
             <tr className="border-b">
@@ -504,7 +524,7 @@ export default function ContasReceber() {
                 <td className="text-right font-semibold text-orange-600">
                   {formatarMoeda(conta.saldo)}
                 </td>
-                <td className={`text-center font-bold ${corStatus(conta.status)}`}>
+                <td className={`text-center text-sm font-bold ${corStatus(conta.status)}`}>
                   {rotulo(conta.status)}
                 </td>
               </tr>
@@ -567,7 +587,7 @@ export default function ContasReceber() {
                   {formatarMoeda(conta.saldo)}
                 </td>
                 <td>{conta.descricao_entrega || "-"}</td>
-                <td className={`text-center font-bold ${corStatus(conta.status)}`}>
+                <td className={`text-center text-sm font-bold ${corStatus(conta.status)}`}>
                   {rotulo(conta.status)}
                 </td>
               </tr>

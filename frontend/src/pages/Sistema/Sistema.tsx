@@ -13,6 +13,7 @@ import { verificarBanco } from "../../services/sistemaSupabase";
 
 export default function Sistema() {
   const usuario = useUsuario();
+  const eDesenvolvedor = usuario?.perfil === "DESENVOLVEDOR";
   const [ultimoBackup, setUltimoBackup] = useState(
     () => localStorage.getItem("ultimoBackup") || "Nunca realizado"
   );
@@ -94,7 +95,7 @@ export default function Sistema() {
     <>
       <h1 className="text-4xl font-bold text-blue-900 mb-8">Sistema</h1>
 
-      {processando && (
+      {eDesenvolvedor && processando && (
         <div className="mb-6 rounded-lg bg-amber-100 text-amber-900 p-4">
           Processando. Não feche a página até a operação terminar.
         </div>
@@ -103,7 +104,7 @@ export default function Sistema() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <BancoCard status={statusBanco} />
 
-        {usuario?.perfil === "DESENVOLVEDOR" && (
+        {eDesenvolvedor && (
           <>
             <BackupCard ultimoBackup={ultimoBackup} onBackup={fazerBackup} />
             <RestaurarCard onRestaurar={restaurarBackup} />
@@ -118,4 +119,5 @@ export default function Sistema() {
     </>
   );
 }
+
 

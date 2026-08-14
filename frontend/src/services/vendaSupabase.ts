@@ -3,10 +3,11 @@ import { supabase } from "./supabase";
 import type { Venda } from "../types/Venda";
 import type { VendaParcela } from "../types/VendaParcela";
 
-export async function buscarVendas(): Promise<Venda[]> {
+export async function buscarVendas(arquivadas = false): Promise<Venda[]> {
   const { data, error } = await supabase
     .from("vendas")
     .select("*")
+    .eq("arquivada", arquivadas)
     .order("data_venda", { ascending: false });
 
   if (error) throw error;
@@ -143,4 +144,22 @@ export async function excluirVenda(id: number): Promise<void> {
 
   if (error) throw error;
 }
+
+export async function arquivarVenda(id: number): Promise<void> {
+  const { error } = await supabase.rpc("arquivar_venda", {
+    p_venda_id: id,
+  });
+
+  if (error) throw error;
+}
+
+export async function restaurarVenda(id: number): Promise<void> {
+  const { error } = await supabase
+    .from("vendas")
+    .update({ arquivada: false, arquivada_em: null })
+    .eq("id", id);
+
+  if (error) throw error;
+}
+
 

@@ -18,5 +18,10 @@ export type Venda = {
 
   observacoes: string;
 
+  arquivada?: boolean;
+
+  arquivada_em?: string | null;
+
   created_at?: string;
 };
+

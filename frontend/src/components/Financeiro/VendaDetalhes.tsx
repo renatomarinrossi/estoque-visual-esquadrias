@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useState } from "react";
 
 import type { Venda } from "../../types/Venda";
@@ -14,7 +15,11 @@ import EditarRecebimentoModal from "./EditarRecebimentoModal";
 import ReceberParcelaModal from "./ReceberParcelaModal";
 import { carregarGeradorPdf } from "../../services/geradorPdf";
 
-type Props = { venda: Venda; onAtualizar: () => Promise<void> };
+type Props = {
+  venda: Venda;
+  onAtualizar: () => Promise<void>;
+  onArquivar?: (venda: Venda) => Promise<void>;
+};
 type RecebimentosPorParcela = Record<number, VendaRecebimento[]>;
 
 function formatarMoeda(valor: number) {
@@ -38,7 +43,7 @@ function corStatus(status: string) {
   return "text-yellow-600";
 }
 
-export default function VendaDetalhes({ venda, onAtualizar }: Props) {
+export default function VendaDetalhes({ venda, onAtualizar, onArquivar }: Props) {
   const [parcelas, setParcelas] = useState<VendaParcela[]>([]);
   const [recebimentosPorParcela, setRecebimentosPorParcela] = useState<RecebimentosPorParcela>({});
   const [modalAberto, setModalAberto] = useState(false);
@@ -177,6 +182,26 @@ export default function VendaDetalhes({ venda, onAtualizar }: Props) {
     doc.save(`relatorio-venda-${venda.id ?? "sem-id"}.pdf`);
   }
 
+  async function confirmarArquivamento() {
+    if (!onArquivar) return;
+
+    if (venda.status !== "RECEBIDO") {
+      alert("Somente obras com todas as parcelas recebidas podem ser finalizadas.");
+      return;
+    }
+
+    if (!window.confirm(`Finalizar a obra de ${venda.cliente}? Ela ficará disponível em Obras Finalizadas.`)) {
+      return;
+    }
+
+    try {
+      await onArquivar(venda);
+    } catch (erro) {
+      console.error(erro);
+      alert(erro instanceof Error ? erro.message : "Não foi possível finalizar a obra.");
+    }
+  }
+
   return (
     <>
       <div className="rounded-lg bg-slate-100 p-6">
@@ -187,7 +212,20 @@ export default function VendaDetalhes({ venda, onAtualizar }: Props) {
             <p><strong>Data da venda</strong><br />{formatarData(venda.data_venda)}</p>
             <p><strong>Valor total</strong><br />{formatarMoeda(venda.valor_total)}</p>
           </div>
-          <button type="button" onClick={gerarRelatorio} disabled={carregando} className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:bg-red-400">Gerar PDF</button>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={gerarRelatorio} disabled={carregando} className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:bg-red-400">Gerar PDF</button>
+            {onArquivar && (
+              <button
+                type="button"
+                onClick={() => void confirmarArquivamento()}
+                disabled={carregando || venda.status !== "RECEBIDO"}
+                title={venda.status !== "RECEBIDO" ? "A obra só pode ser finalizada quando todas as parcelas estiverem recebidas." : ""}
+                className="rounded-lg bg-blue-700 px-4 py-2 text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              >
+                Arquivar
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="mb-6"><strong>Observações</strong><div className="mt-2 rounded-lg bg-white p-3">{venda.observacoes || "-"}</div></div>
@@ -246,4 +284,5 @@ export default function VendaDetalhes({ venda, onAtualizar }: Props) {
     </>
   );
 }
+
 

@@ -79,16 +79,25 @@ export default function Compras() {
         </select>
       </div>
 
-      <div className="rounded-xl bg-white p-6 shadow-md">
-        <table className="w-full">
-          <thead><tr className="border-b"><th className="py-3 text-left">Código</th><th className="text-left">Descrição</th><th>Categoria</th><th>Estoque Atual</th><th>Estoque Mínimo</th><th>Comprar</th></tr></thead>
+      <div className="overflow-x-auto rounded-xl bg-white p-6 shadow-md">
+        <table className="w-full min-w-[760px]">
+          <thead>
+            <tr className="border-b">
+              <th className="border-r py-3 pr-2 text-left whitespace-nowrap">Código</th>
+              <th className="border-r px-2 text-left">Descrição</th>
+              <th className="border-r px-2 text-center whitespace-nowrap">Categ.</th>
+              <th className="border-r px-2 text-center leading-tight whitespace-nowrap"><span className="block">Estoque</span><span className="block">Atual</span></th>
+              <th className="border-r px-2 text-center leading-tight whitespace-nowrap"><span className="block">Estoque</span><span className="block">Mínimo</span></th>
+              <th className="pl-2 text-center whitespace-nowrap">Comprar</th>
+            </tr>
+          </thead>
           <tbody>
             {produtosFiltrados.length === 0 ? (
               <tr><td colSpan={6} className="py-8 text-center text-gray-500">Nenhum item precisa de reposição</td></tr>
             ) : produtosFiltrados.map((produto) => {
               const quantidade = Number(produto.quantidade);
               const minimo = Number(produto.estoque_minimo);
-              return <tr key={produto.id} className="border-b"><td>{produto.codigo}</td><td>{produto.descricao}</td><td className="text-center">{produto.categoria || "-"}</td><td className="text-center font-bold text-red-600">{quantidade}</td><td className="text-center">{minimo}</td><td className="text-center font-bold text-orange-600">{minimo - quantidade}</td></tr>;
+              return <tr key={produto.id} className="border-b"><td className="border-r py-2 pr-2">{produto.codigo}</td><td className="border-r px-2">{produto.descricao}</td><td className="border-r px-2 text-center">{produto.categoria || "-"}</td><td className="border-r px-2 text-center font-bold text-red-600">{quantidade}</td><td className="border-r px-2 text-center">{minimo}</td><td className="pl-2 text-center font-bold text-orange-600">{minimo - quantidade}</td></tr>;
             })}
           </tbody>
         </table>
@@ -96,3 +105,4 @@ export default function Compras() {
     </>
   );
 }
+

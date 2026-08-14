@@ -1,10 +1,12 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import type { Venda } from "../../types/Venda";
 import type { VendaParcela } from "../../types/VendaParcela";
 import {
   buscarVendas,
+  arquivarVenda,
   excluirVenda,
+  restaurarVenda,
   salvarVendaComParcelas,
 } from "../../services/vendaSupabase";
 import VendaForm from "../../components/Financeiro/VendaForm";
@@ -25,25 +27,29 @@ function mensagemErro(erro: unknown, padrao: string) {
   return erro instanceof Error && erro.message ? erro.message : padrao;
 }
 
-export default function Vendas() {
+type Props = {
+  obrasFinalizadas?: boolean;
+};
+
+export default function Vendas({ obrasFinalizadas = false }: Props) {
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [venda, setVenda] = useState<Venda>(criarVendaVazia);
   const [busca, setBusca] = useState("");
   const [termoBusca, setTermoBusca] = useState("");
 
-  async function carregarDados() {
+  const carregarDados = useCallback(async () => {
     try {
-      setVendas(await buscarVendas());
+      setVendas(await buscarVendas(obrasFinalizadas));
     } catch (erro) {
       console.error(erro);
       alert("Não foi possível carregar as vendas.");
     }
-  }
+  }, [obrasFinalizadas]);
 
   useEffect(() => {
     void carregarDados();
-  }, []);
+  }, [carregarDados]);
 
   const vendasFiltradas = useMemo(() => {
     const termo = termoBusca.trim().toLocaleLowerCase("pt-BR");
@@ -100,20 +106,46 @@ export default function Vendas() {
     }
   }
 
+  async function arquivarVendaConcluida(item: Venda) {
+    if (!item.id) return;
+
+    await arquivarVenda(item.id);
+    await carregarDados();
+  }
+
+  async function restaurarVendaArquivada(item: Venda) {
+    if (!item.id) return;
+    if (!window.confirm(`Restaurar a obra de ${item.cliente} para a listagem de vendas?`)) {
+      return;
+    }
+
+    try {
+      await restaurarVenda(item.id);
+      await carregarDados();
+    } catch (erro) {
+      console.error(erro);
+      alert(mensagemErro(erro, "Não foi possível restaurar a obra."));
+    }
+  }
+
   return (
     <>
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-4xl font-bold text-blue-900">Vendas</h1>
-        <button
-          type="button"
-          onClick={() => {
-            setVenda(criarVendaVazia());
-            setMostrarFormulario(true);
-          }}
-          className="rounded-lg bg-blue-700 px-5 py-3 text-white hover:bg-blue-800"
-        >
-          Nova venda
-        </button>
+        <h1 className="text-4xl font-bold text-blue-900">
+          {obrasFinalizadas ? "Obras Finalizadas" : "Vendas"}
+        </h1>
+        {!obrasFinalizadas && (
+          <button
+            type="button"
+            onClick={() => {
+              setVenda(criarVendaVazia());
+              setMostrarFormulario(true);
+            }}
+            className="rounded-lg bg-blue-700 px-5 py-3 text-white hover:bg-blue-800"
+          >
+            Nova venda
+          </button>
+        )}
       </div>
 
       <form
@@ -149,7 +181,7 @@ export default function Vendas() {
         </div>
       </form>
 
-      {mostrarFormulario && (
+      {!obrasFinalizadas && mostrarFormulario && (
         <VendaForm
           venda={venda}
           setVenda={setVenda}
@@ -160,11 +192,15 @@ export default function Vendas() {
 
       <VendaTable
         vendas={vendasFiltradas}
-        onEditar={editarVenda}
-        onExcluir={removerVenda}
         onAtualizar={carregarDados}
+        obrasFinalizadas={obrasFinalizadas}
+        onArquivar={obrasFinalizadas ? undefined : arquivarVendaConcluida}
+        onEditar={obrasFinalizadas ? undefined : editarVenda}
+        onExcluir={obrasFinalizadas ? undefined : removerVenda}
+        onRestaurar={obrasFinalizadas ? restaurarVendaArquivada : undefined}
       />
     </>
   );
 }
+
 

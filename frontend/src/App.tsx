@@ -16,7 +16,13 @@ const ContasReceber = lazy(() => import("./pages/Financeiro/ContasReceber"));
 const DashboardFinanceiro = lazy(
   () => import("./pages/Financeiro/DashboardFinanceiro")
 );
+const LogsFinanceiros = lazy(
+  () => import("./pages/Financeiro/LogsFinanceiros")
+);
 const Vendas = lazy(() => import("./pages/Financeiro/Vendas"));
+const VendasArquivadas = lazy(
+  () => import("./pages/Financeiro/VendasArquivadas")
+);
 const Fornecedores = lazy(() => import("./pages/Fornecedores/Fornecedores"));
 const Entrada = lazy(() => import("./pages/Entrada/Entrada"));
 const Lixeira = lazy(() => import("./pages/Lixeira/Lixeira"));
@@ -99,6 +105,15 @@ function RotasDoSistema() {
             />
             <Route path="compras" element={<Compras />} />
             <Route path="vendas" element={<Vendas />} />
+            <Route path="obras-finalizadas" element={<VendasArquivadas />} />
+            <Route
+              path="logs-financeiros"
+              element={
+                <ProtectedRoute perfil="DESENVOLVEDOR">
+                  <LogsFinanceiros />
+                </ProtectedRoute>
+              }
+            />
             <Route path="contas-receber" element={<ContasReceber />} />
             <Route path="contas-pagar" element={<ContasPagar />} />
             <Route
@@ -111,14 +126,7 @@ function RotasDoSistema() {
             />
             <Route path="fornecedores" element={<Fornecedores />} />
             <Route path="lixeira" element={<Lixeira />} />
-            <Route
-              path="sistema"
-              element={
-                <ProtectedRoute perfil="DESENVOLVEDOR">
-                  <Sistema />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="sistema" element={<Sistema />} />
             <Route
               path="usuarios"
               element={

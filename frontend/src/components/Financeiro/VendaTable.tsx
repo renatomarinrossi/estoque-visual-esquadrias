@@ -7,9 +7,12 @@ import VendaDetalhes from "./VendaDetalhes";
 
 type Props = {
   vendas: Venda[];
-  onEditar: (venda: Venda) => void;
-  onExcluir: (venda: Venda) => void;
+  onEditar?: (venda: Venda) => void;
+  onExcluir?: (venda: Venda) => void;
   onAtualizar: () => Promise<void>;
+  onArquivar?: (venda: Venda) => Promise<void>;
+  onRestaurar?: (venda: Venda) => Promise<void>;
+  obrasFinalizadas?: boolean;
 };
 
 type ProximasParcelas = Record<number, VendaParcela | null>;
@@ -34,7 +37,15 @@ function corStatus(status: string) {
   return "text-yellow-600";
 }
 
-export default function VendaTable({ vendas, onEditar, onExcluir, onAtualizar }: Props) {
+export default function VendaTable({
+  vendas,
+  onEditar,
+  onExcluir,
+  onAtualizar,
+  onArquivar,
+  onRestaurar,
+  obrasFinalizadas = false,
+}: Props) {
   const [vendaExpandida, setVendaExpandida] = useState<number | null>(null);
   const [proximasParcelas, setProximasParcelas] = useState<ProximasParcelas>({});
   const [totaisRecebidos, setTotaisRecebidos] = useState<Record<number, number>>({});
@@ -81,7 +92,7 @@ export default function VendaTable({ vendas, onEditar, onExcluir, onAtualizar }:
       <table className="w-full min-w-[980px]">
         <thead><tr className="border-b"><th className="py-3 text-left">Cliente</th><th className="w-52 text-center">Próx. Recebimento</th><th className="w-40 text-center">Total venda</th><th className="w-40 text-center">Status</th><th className="w-44 text-center">Receb. restante</th><th className="w-44 text-center">Ações</th></tr></thead>
         <tbody>
-          {vendas.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-gray-500">Nenhuma venda cadastrada.</td></tr>}
+          {vendas.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-gray-500">{obrasFinalizadas ? "Nenhuma obra finalizada encontrada." : "Nenhuma venda cadastrada."}</td></tr>}
           {vendas.map((venda) => {
             const proximaParcela = venda.id ? proximasParcelas[venda.id] : null;
             const recebido = venda.id ? totaisRecebidos[venda.id] ?? 0 : 0;
@@ -95,9 +106,26 @@ export default function VendaTable({ vendas, onEditar, onExcluir, onAtualizar }:
                   <td className="text-center">{formatarMoeda(venda.valor_total)}</td>
                   <td className={`text-center font-bold ${corStatus(venda.status)}`}>{rotuloStatus(venda.status)}</td>
                   <td className={`text-center font-semibold ${restante > 0 ? "text-orange-600" : "text-green-700"}`}>{carregandoResumo ? "-" : formatarMoeda(restante)}</td>
-                  <td className="py-2"><div className="flex justify-center gap-2"><button type="button" onClick={() => onEditar(venda)} className="rounded bg-yellow-500 px-3 py-1 text-white hover:bg-yellow-600">Editar</button><button type="button" onClick={() => onExcluir(venda)} className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700">Excluir</button></div></td>
+                  <td className="py-2">
+                    <div className="flex justify-center gap-2">
+                      {obrasFinalizadas ? (
+                        <button
+                          type="button"
+                          onClick={() => onRestaurar && void onRestaurar(venda)}
+                          className="rounded-md bg-blue-700 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-px hover:bg-blue-800"
+                        >
+                          Restaurar
+                        </button>
+                      ) : (
+                        <>
+                          {onEditar && <button type="button" onClick={() => onEditar(venda)} className="rounded-md bg-yellow-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-px hover:bg-yellow-600">Editar</button>}
+                          {onExcluir && <button type="button" onClick={() => onExcluir(venda)} className="rounded-md bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-px hover:bg-red-700">Excluir</button>}
+                        </>
+                      )}
+                    </div>
+                  </td>
                 </tr>
-                {vendaExpandida === venda.id && <tr className="bg-slate-50"><td colSpan={6} className="p-4"><VendaDetalhes venda={venda} onAtualizar={atualizarDadosVenda} /></td></tr>}
+                {vendaExpandida === venda.id && <tr className="bg-slate-50"><td colSpan={6} className="p-4"><VendaDetalhes venda={venda} onAtualizar={atualizarDadosVenda} onArquivar={obrasFinalizadas ? undefined : onArquivar} /></td></tr>}
               </Fragment>
             );
           })}
@@ -106,4 +134,5 @@ export default function VendaTable({ vendas, onEditar, onExcluir, onAtualizar }:
     </div>
   );
 }
+
 
