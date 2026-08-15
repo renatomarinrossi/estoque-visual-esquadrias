@@ -159,7 +159,7 @@ export default function Produtos() {
 
   return (
     <>
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-4xl font-bold text-blue-900">Produtos</h1>
         <div className="flex gap-3">
           <button type="button" onClick={gerarPDF} className="rounded-lg bg-red-600 px-5 py-3 text-white hover:bg-red-700">Gerar PDF</button>
@@ -167,22 +167,26 @@ export default function Produtos() {
         </div>
       </div>
 
-      <div className="mb-6">
-        <input type="text" placeholder="Pesquisar..." value={pesquisa} onChange={(event) => setPesquisa(event.target.value)} className="w-full rounded-xl border bg-white p-4" />
-      </div>
+      <div className="mb-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="flex items-end">
+            <input type="text" placeholder="Pesquisar..." value={pesquisa} onChange={(event) => setPesquisa(event.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
+          </div>
 
-      <div className="mb-6">
-        <label className="mb-2 block font-semibold">Categoria</label>
-        <select value={categoria} onChange={(event) => setCategoria(event.target.value)} className="w-80 rounded-xl border bg-white p-3">
-          <option>Todas</option>
-          <option>Vidros</option>
-          <option>Alumínio</option>
-          <option>Acessórios</option>
-          <option>Ferramentas</option>
-          <option>Parafusos/Brocas</option>
-          <option>Silicone/PU</option>
-          <option>Borrachas</option>
-        </select>
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold">Categoria</label>
+            <select value={categoria} onChange={(event) => setCategoria(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm">
+              <option>Todas</option>
+              <option>Vidros</option>
+              <option>Alumínio</option>
+              <option>Acessórios</option>
+              <option>Ferramentas</option>
+              <option>Parafusos/Brocas</option>
+              <option>Silicone/PU</option>
+              <option>Borrachas</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {mostrarFormulario && <ProdutoForm produtoInicial={produtoEditando} onSalvar={salvarProduto} onCancelar={() => { setMostrarFormulario(false); setProdutoEditando(null); }} />}

@@ -160,7 +160,7 @@ export default function Fornecedores() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-8">
+      <div className="mb-6 flex items-center justify-between">
 
         <h1 className="text-4xl font-bold text-blue-900">
           Fornecedores
@@ -187,7 +187,11 @@ export default function Fornecedores() {
 
       </div>
 
-      <div className="mb-6">
+      <div className="mb-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+
+        <label className="mb-1.5 block text-sm font-semibold">
+          Categoria
+        </label>
 
         <select
           value={categoriaFiltro}
@@ -196,7 +200,7 @@ export default function Fornecedores() {
               e.target.value
             )
           }
-          className="border rounded-lg p-3 bg-white"
+          className="w-full max-w-sm rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm"
         >
           <option>
             Todos
@@ -244,3 +248,4 @@ export default function Fornecedores() {
       />    </>
   );
 }
+

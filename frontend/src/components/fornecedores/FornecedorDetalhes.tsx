@@ -8,9 +8,9 @@ export default function FornecedorDetalhes({
   fornecedor,
 }: Props) {
   return (
-    <div className="bg-slate-100 rounded-lg p-5 my-2">
+    <div className="mx-4 my-2 rounded-lg border border-blue-100 bg-slate-50 p-4 text-sm">
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 
         <div>
 
@@ -18,7 +18,7 @@ export default function FornecedorDetalhes({
             <strong>Razão Social:</strong>
           </p>
 
-          <p className="mb-4">
+          <p className="mb-3 mt-1 text-slate-700">
             {fornecedor.razao_social || "-"}
           </p>
 
@@ -26,7 +26,7 @@ export default function FornecedorDetalhes({
             <strong>Categoria:</strong>
           </p>
 
-          <p className="mb-4">
+          <p className="mb-3 mt-1 text-slate-700">
             {fornecedor.categoria || "-"}
           </p>
 
@@ -34,7 +34,7 @@ export default function FornecedorDetalhes({
             <strong>Contato:</strong>
           </p>
 
-          <p>
+          <p className="mt-1 text-slate-700">
             {fornecedor.contato || "-"}
           </p>
 
@@ -46,7 +46,7 @@ export default function FornecedorDetalhes({
             <strong>Telefone:</strong>
           </p>
 
-          <p className="mb-4">
+          <p className="mb-3 mt-1 text-slate-700">
             {fornecedor.telefone || "-"}
           </p>
 
@@ -54,7 +54,7 @@ export default function FornecedorDetalhes({
             <strong>WhatsApp:</strong>
           </p>
 
-          <p className="mb-4">
+          <p className="mb-3 mt-1 text-slate-700">
             {fornecedor.whatsapp || "-"}
           </p>
 
@@ -62,7 +62,7 @@ export default function FornecedorDetalhes({
             <strong>E-mail:</strong>
           </p>
 
-          <p className="mb-4">
+          <p className="mb-3 mt-1 text-slate-700">
             {fornecedor.email || "-"}
           </p>
 
@@ -70,7 +70,7 @@ export default function FornecedorDetalhes({
 
       </div>
 
-      <div className="grid grid-cols-2 gap-6 mt-4">
+      <div className="mt-4 grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 md:grid-cols-2">
 
         <div>
 
@@ -78,7 +78,7 @@ export default function FornecedorDetalhes({
             <strong>Cidade:</strong>
           </p>
 
-          <p>
+          <p className="mt-1 text-slate-700">
             {fornecedor.cidade || "-"}
           </p>
 
@@ -90,7 +90,7 @@ export default function FornecedorDetalhes({
             <strong>Estado:</strong>
           </p>
 
-          <p>
+          <p className="mt-1 text-slate-700">
             {fornecedor.estado || "-"}
           </p>
 
@@ -98,13 +98,13 @@ export default function FornecedorDetalhes({
 
       </div>
 
-      <div className="mt-6">
+      <div className="mt-4 border-t border-slate-200 pt-4">
 
         <p>
           <strong>Observações:</strong>
         </p>
 
-        <div className="bg-white border rounded-lg p-3 mt-2 whitespace-pre-wrap">
+        <div className="mt-2 whitespace-pre-wrap rounded-lg border border-slate-200 bg-white p-3 text-slate-700">
           {fornecedor.observacoes || "Nenhuma observação cadastrada."}
         </div>
 
@@ -113,3 +113,4 @@ export default function FornecedorDetalhes({
     </div>
   );
 }
+

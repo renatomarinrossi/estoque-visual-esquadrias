@@ -31,12 +31,30 @@ function rotulo(valor: string) {
   return valor.replace(/_/g, " ");
 }
 
+function dataParaISO(data: Date) {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const dia = String(data.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
+
+function obterHoje() {
+  return dataParaISO(new Date());
+}
+
+function adicionarDias(data: string, quantidade: number) {
+  const [ano, mes, dia] = data.split("-").map(Number);
+  const resultado = new Date(ano, mes - 1, dia);
+  resultado.setDate(resultado.getDate() + quantidade);
+  return dataParaISO(resultado);
+}
+
 export default function DashboardFinanceiro() {
   const [contasReceber, setContasReceber] = useState<ContaReceber[]>([]);
   const [contasPagar, setContasPagar] = useState<ContaPagar[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [dataInicial, setDataInicial] = useState("");
-  const [dataFinal, setDataFinal] = useState("");
+  const [dataInicial, setDataInicial] = useState(() => obterHoje());
+  const [dataFinal, setDataFinal] = useState(() => adicionarDias(obterHoje(), 15));
 
   async function carregarDados() {
     setCarregando(true);
@@ -341,40 +359,40 @@ export default function DashboardFinanceiro() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <div className="overflow-x-auto rounded-xl bg-white p-6 shadow-md">
-          <h2 className="mb-2 border-b pb-3 text-xl font-bold text-green-700">Contas a Receber</h2>
-          <table className="w-full min-w-[520px]">
-            <thead><tr className="border-b text-slate-700"><th className="text-left py-3">Cliente</th><th className="text-center">Vencimento</th><th className="text-right">Saldo</th></tr></thead>
+        <div className="overflow-x-auto rounded-xl bg-white p-5 shadow-sm">
+          <h2 className="mb-2 border-b pb-2.5 text-lg font-bold text-green-700">Contas a Receber</h2>
+          <table className="w-full min-w-[520px] text-sm">
+            <thead><tr className="border-b text-xs uppercase tracking-wide text-slate-600"><th className="text-left py-2.5">Cliente</th><th className="text-center">Vencimento</th><th className="text-right">Saldo</th></tr></thead>
             <tbody>
               {carregando && <tr><td colSpan={3} className="py-6 text-center text-gray-500">Carregando...</td></tr>}
               {!carregando && contasReceberFiltradas.length === 0 && <tr><td colSpan={3} className="py-6 text-center text-gray-500">Nenhuma conta a receber.</td></tr>}
-              {!carregando && contasReceberFiltradas.map((conta) => <tr key={conta.parcela_id} className="border-b"><td className="py-3">{conta.cliente}</td><td className="text-center">{formatarData(conta.data_vencimento)}</td><td className="text-right text-green-700">{formatarMoeda(conta.saldo)}</td></tr>)}
+              {!carregando && contasReceberFiltradas.map((conta, index) => <tr key={conta.parcela_id} className={`border-b border-slate-100 ${index % 2 === 0 ? "bg-white" : "bg-blue-50/35"}`}><td className="py-2 text-[13px] font-medium text-slate-800">{conta.cliente}</td><td className="text-center">{formatarData(conta.data_vencimento)}</td><td className="text-right text-green-700">{formatarMoeda(conta.saldo)}</td></tr>)}
             </tbody>
-            <tfoot><tr className="border-t-2 border-green-600 font-bold text-green-700"><td colSpan={2} className="py-3">Total</td><td className="text-right">{formatarMoeda(totalReceber)}</td></tr></tfoot>
+            <tfoot><tr className="border-t-2 border-green-600 font-bold text-green-700"><td colSpan={2} className="py-2.5">Total</td><td className="text-right">{formatarMoeda(totalReceber)}</td></tr></tfoot>
           </table>
         </div>
-        <div className="overflow-x-auto rounded-xl bg-white p-6 shadow-md">
-          <h2 className="mb-2 border-b pb-3 text-xl font-bold text-red-600">Contas a Pagar</h2>
-          <table className="w-full min-w-[520px]">
-            <thead><tr className="border-b"><th className="text-left py-3">Nome</th><th className="text-center">Vencimento</th><th className="text-right">Valor</th></tr></thead>
+        <div className="overflow-x-auto rounded-xl bg-white p-5 shadow-sm">
+          <h2 className="mb-2 border-b pb-2.5 text-lg font-bold text-red-600">Contas a Pagar</h2>
+          <table className="w-full min-w-[520px] text-sm">
+            <thead><tr className="border-b text-xs uppercase tracking-wide text-slate-600"><th className="text-left py-2.5">Nome</th><th className="text-center">Vencimento</th><th className="text-right">Valor</th></tr></thead>
             <tbody>
               {carregando && <tr><td colSpan={3} className="py-6 text-center text-gray-500">Carregando...</td></tr>}
               {!carregando && contasPagarFiltradas.length === 0 && <tr><td colSpan={3} className="py-6 text-center text-gray-500">Nenhuma conta a pagar.</td></tr>}
-              {!carregando && contasPagarFiltradas.map((conta) => <tr key={conta.id} className="border-b"><td className="py-3">{conta.favorecido}</td><td className="text-center">{formatarData(conta.data_vencimento)}</td><td className="text-right text-red-600">{formatarMoeda(conta.valor)}</td></tr>)}
+              {!carregando && contasPagarFiltradas.map((conta, index) => <tr key={conta.id} className={`border-b border-slate-100 ${index % 2 === 0 ? "bg-white" : "bg-blue-50/35"}`}><td className="py-2 text-[13px] font-medium text-slate-800">{conta.favorecido}</td><td className="text-center">{formatarData(conta.data_vencimento)}</td><td className="text-right text-red-600">{formatarMoeda(conta.valor)}</td></tr>)}
             </tbody>
-            <tfoot><tr className="border-t-2 border-red-600 font-bold text-red-600"><td colSpan={2} className="py-3">Total</td><td className="text-right">{formatarMoeda(totalPagar)}</td></tr></tfoot>
+            <tfoot><tr className="border-t-2 border-red-600 font-bold text-red-600"><td colSpan={2} className="py-2.5">Total</td><td className="text-right">{formatarMoeda(totalPagar)}</td></tr></tfoot>
           </table>
         </div>
-        <div className="overflow-x-auto rounded-xl bg-white p-6 shadow-md xl:col-span-2">
-          <h2 className="mb-2 border-b pb-3 text-xl font-bold text-amber-700">Condicionados à Entrega</h2>
-          <table className="w-full min-w-[720px]">
-            <thead><tr className="border-b"><th className="text-left py-3">Cliente</th><th className="text-center">Parcela</th><th className="text-right">Saldo</th></tr></thead>
+        <div className="overflow-x-auto rounded-xl bg-white p-5 shadow-sm xl:col-span-2">
+          <h2 className="mb-2 border-b pb-2.5 text-lg font-bold text-amber-700">Condicionados à Entrega</h2>
+          <table className="w-full min-w-[720px] text-sm">
+            <thead><tr className="border-b text-xs uppercase tracking-wide text-slate-600"><th className="text-left py-2.5">Cliente</th><th className="text-center">Parcela</th><th className="text-right">Saldo</th></tr></thead>
             <tbody>
               {carregando && <tr><td colSpan={3} className="py-6 text-center text-gray-500">Carregando...</td></tr>}
               {!carregando && contasCondicionadas.length === 0 && <tr><td colSpan={3} className="py-6 text-center text-gray-500">Nenhuma conta condicionada à entrega.</td></tr>}
-              {!carregando && contasCondicionadas.map((conta) => <tr key={conta.parcela_id} className="border-b"><td className="py-3">{conta.cliente}</td><td className="text-center">{conta.numero_parcela}/{conta.total_parcelas}</td><td className="text-right text-amber-700">{formatarMoeda(conta.saldo)}</td></tr>)}
+              {!carregando && contasCondicionadas.map((conta, index) => <tr key={conta.parcela_id} className={`border-b border-slate-100 ${index % 2 === 0 ? "bg-white" : "bg-blue-50/35"}`}><td className="py-2 text-[13px] font-medium text-slate-800">{conta.cliente}</td><td className="text-center">{conta.numero_parcela}/{conta.total_parcelas}</td><td className="text-right text-amber-700">{formatarMoeda(conta.saldo)}</td></tr>)}
             </tbody>
-            <tfoot><tr className="border-t-2 border-amber-600 font-bold text-amber-700"><td colSpan={2} className="py-3">Total</td><td className="text-right">{formatarMoeda(totalCondicionado)}</td></tr></tfoot>
+            <tfoot><tr className="border-t-2 border-amber-600 font-bold text-amber-700"><td colSpan={2} className="py-2.5">Total</td><td className="text-right">{formatarMoeda(totalCondicionado)}</td></tr></tfoot>
           </table>
         </div>
       </div>
