@@ -11,6 +11,7 @@ import {
 } from "../../services/produtoSupabase";
 import { buscarFornecedores } from "../../services/fornecedorSupabase";
 import { carregarGeradorPdf } from "../../services/geradorPdf";
+import { adicionarCabecalhoPdf } from "../../services/cabecalhoPdf";
 
 type ProdutoBanco = {
   id: number;
@@ -135,14 +136,12 @@ export default function Produtos() {
   async function gerarPDF() {
     const { jsPDF, autoTable } = await carregarGeradorPdf();
     const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Visual Esquadrias", 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Relatório de Produtos - ${categoria}`, 14, 30);
-    doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 14, 38);
+    await adicionarCabecalhoPdf(doc, `Relatório de Produtos - ${categoria}`);
+    doc.setFontSize(10);
+    doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 14, 43);
 
     autoTable(doc, {
-      startY: 45,
+      startY: 49,
       head: [["Código", "Descrição", "Categoria", "Unidade", "Estoque", "Mínimo", "Preço Compra"]],
       body: produtosFiltrados.map((produto) => [
         produto.codigo,

@@ -130,10 +130,17 @@ export default function Vendas({ obrasFinalizadas = false }: Props) {
 
   return (
     <>
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-4xl font-bold text-blue-900">
-          {obrasFinalizadas ? "Obras Finalizadas" : "Vendas"}
-        </h1>
+      <div className="mb-8 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-blue-900">
+            {obrasFinalizadas ? "Obras Finalizadas" : "Vendas"}
+          </h1>
+          <p className="mt-1 text-gray-600">
+            {obrasFinalizadas
+              ? "Histórico de obras recebidas e finalizadas."
+              : "Vendas, parcelas e recebimentos."}
+          </p>
+        </div>
         {!obrasFinalizadas && (
           <button
             type="button"
@@ -174,7 +181,7 @@ export default function Vendas({ obrasFinalizadas = false }: Props) {
           <button
             type="button"
             onClick={limparBusca}
-            className="rounded-lg bg-gray-500 px-5 py-3 text-white hover:bg-gray-600"
+            className="rounded-lg border border-gray-300 bg-white px-5 py-3 text-gray-700 hover:bg-gray-50"
           >
             Limpar
           </button>
@@ -202,5 +209,6 @@ export default function Vendas({ obrasFinalizadas = false }: Props) {
     </>
   );
 }
+
 
 

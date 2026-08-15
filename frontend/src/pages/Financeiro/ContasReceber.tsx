@@ -7,6 +7,7 @@ import {
   buscarContasReceber,
 } from "../../services/contasReceberSupabase";
 import { carregarGeradorPdf } from "../../services/geradorPdf";
+import { adicionarCabecalhoPdf } from "../../services/cabecalhoPdf";
 
 function formatarMoeda(valor: number) {
   return Number(valor).toLocaleString("pt-BR", {
@@ -29,8 +30,8 @@ function rotulo(valor: string) {
 
 function corStatus(status: ContaReceber["status"]) {
   return status === "PARCIALMENTE_RECEBIDO"
-    ? "text-orange-600"
-    : "text-yellow-600";
+    ? "bg-orange-100 text-orange-700"
+    : "bg-amber-100 text-amber-700";
 }
 
 function hoje() {
@@ -132,6 +133,10 @@ export default function ContasReceber() {
   );
   const totalVencido = contasAtrasadas
     .reduce((total, conta) => total + conta.saldo, 0);
+  const totalCondicionado = contasCondicionadas.reduce(
+    (total, conta) => total + conta.saldo,
+    0
+  );
   const totalNoPeriodo = contasFiltradas
     .filter((conta) => {
       if (conta.forma_pagamento === "CONDICIONADO_ENTREGA") return false;
@@ -169,11 +174,7 @@ export default function ContasReceber() {
     const { jsPDF, autoTable } = await carregarGeradorPdf();
     const doc = new jsPDF();
 
-    doc.setFontSize(18);
-    doc.text("Estoque Visual Esquadrias", 14, 18);
-
-    doc.setFontSize(13);
-    doc.text("Relatório de Contas a Receber", 14, 27);
+    await adicionarCabecalhoPdf(doc, "Relatório de Contas a Receber");
 
     doc.setFontSize(10);
     doc.text(
@@ -181,19 +182,57 @@ export default function ContasReceber() {
         filtrosAplicados.dataFinal ? formatarData(filtrosAplicados.dataFinal) : "Hoje"
       }`,
       14,
-      36
+      43
     );
-    doc.text(`Total a receber: ${formatarMoeda(totalAReceber)}`, 14, 42);
-    doc.text(`A receber no período: ${formatarMoeda(totalNoPeriodo)}`, 14, 48);
-    doc.text(`Contas no relatório: ${contasFiltradas.length}`, 14, 54);
+
+    const adicionarTotalTabela = (
+      texto: string,
+      cor: [number, number, number]
+    ) => {
+      const tabela = doc as typeof doc & {
+        lastAutoTable?: { finalY: number };
+      };
+      const finalTabela = tabela.lastAutoTable?.finalY ?? 42;
+      const alturaCampoTotal = 9;
+      const limitePagina = doc.internal.pageSize.getHeight() - 14;
+      let posicaoTotal = finalTabela;
+
+      if (posicaoTotal + alturaCampoTotal > limitePagina) {
+        doc.addPage();
+        posicaoTotal = 14;
+      }
+
+      doc.setFillColor(...cor);
+      doc.rect(14, posicaoTotal, 182, alturaCampoTotal, "F");
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(255, 255, 255);
+      doc.text(texto, 192, posicaoTotal + 5.8, { align: "right" });
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(0, 0, 0);
+
+      return posicaoTotal + alturaCampoTotal;
+    };
+
+    const prepararInicioSecao = (posicaoAnterior: number) => {
+      const limitePagina = doc.internal.pageSize.getHeight() - 14;
+      const inicioSugerido = posicaoAnterior + 12;
+
+      if (inicioSugerido + 18 > limitePagina) {
+        doc.addPage();
+        return 20;
+      }
+
+      return inicioSugerido;
+    };
 
     doc.setFontSize(12);
     doc.setTextColor(185, 28, 28);
-    doc.text("Contas atrasadas", 14, 62);
+    doc.text("Contas atrasadas", 14, 52);
     doc.setTextColor(0, 0, 0);
 
     autoTable(doc, {
-      startY: 67,
+      startY: 57,
       head: [[
         "Cliente",
         "Parcela",
@@ -221,11 +260,11 @@ export default function ContasReceber() {
       headStyles: { fillColor: [185, 28, 28] },
     });
 
-    const tabelaAtrasadas = doc as typeof doc & {
-      lastAutoTable?: { finalY: number };
-    };
-    const inicioDemaisContas =
-      (tabelaAtrasadas.lastAutoTable?.finalY ?? 67) + 12;
+    const fimAtrasadas = adicionarTotalTabela(
+      `Total contas atrasadas: ${formatarMoeda(totalVencido)}`,
+      [185, 28, 28]
+    );
+    const inicioDemaisContas = prepararInicioSecao(fimAtrasadas);
 
     doc.setFontSize(12);
     doc.text("Demais contas a receber", 14, inicioDemaisContas);
@@ -256,11 +295,11 @@ export default function ContasReceber() {
       headStyles: { fillColor: [30, 64, 175] },
     });
 
-    const tabelaDemaisContas = doc as typeof doc & {
-      lastAutoTable?: { finalY: number };
-    };
-    const inicioCondicionados =
-      (tabelaDemaisContas.lastAutoTable?.finalY ?? inicioDemaisContas + 5) + 12;
+    const fimDemaisContas = adicionarTotalTabela(
+      `Total a receber no período: ${formatarMoeda(totalNoPeriodo)}`,
+      [30, 64, 175]
+    );
+    const inicioCondicionados = prepararInicioSecao(fimDemaisContas);
 
     doc.setFontSize(12);
     doc.text("Condicionados à entrega", 14, inicioCondicionados);
@@ -283,12 +322,17 @@ export default function ContasReceber() {
       headStyles: { fillColor: [161, 98, 7] },
     });
 
+    adicionarTotalTabela(
+      `Total condicionado à entrega: ${formatarMoeda(totalCondicionado)}`,
+      [161, 98, 7]
+    );
+
     doc.save("contas-a-receber.pdf");
   }
 
   return (
     <>
-      <div className="flex flex-col gap-4 mb-8 lg:flex-row lg:justify-between lg:items-center">
+      <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:justify-between lg:items-center">
         <div>
           <h1 className="text-4xl font-bold text-blue-900">Contas a Receber</h1>
           <p className="mt-1 text-gray-600">
@@ -315,76 +359,65 @@ export default function ContasReceber() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
-        <div className="bg-white rounded-xl shadow-sm p-5">
+      <div className="grid grid-cols-1 gap-4 mb-5 md:grid-cols-3">
+        <div className="bg-white rounded-xl border border-slate-200 border-l-4 border-l-blue-600 shadow-sm px-5 py-4">
           <div className="text-sm text-gray-500">Total a receber</div>
-          <div className="mt-1 text-2xl font-bold text-blue-900">
+          <div className="mt-1 text-xl font-bold text-blue-900">
             {formatarMoeda(totalAReceber)}
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <div className="text-sm text-gray-500">Contas pendentes</div>
-          <div className="mt-1 text-2xl font-bold text-blue-900">
-            {contasFiltradas.length}
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <div className="text-sm text-gray-500">Valor vencido</div>
-          <div className="mt-1 text-2xl font-bold text-red-600">
+        <div className="bg-white rounded-xl border border-slate-200 border-l-4 border-l-red-500 shadow-sm px-5 py-4">
+          <div className="text-sm text-gray-500">Vencido</div>
+          <div className="mt-1 text-xl font-bold text-red-600">
             {formatarMoeda(totalVencido)}
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-5">
+        <div className="bg-white rounded-xl border border-slate-200 border-l-4 border-l-amber-500 shadow-sm px-5 py-4">
           <div className="text-sm text-gray-500">Condicionado à entrega</div>
-          <div className="mt-1 text-2xl font-bold text-amber-700">
-            {formatarMoeda(
-              contasCondicionadas.reduce(
-                (total, conta) => total + conta.saldo,
-                0
-              )
-            )}
+          <div className="mt-1 text-xl font-bold text-amber-700">
+            {formatarMoeda(totalCondicionado)}
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-5">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           <div>
-            <label className="block mb-2 font-semibold">Vencimento inicial</label>
+            <label className="block mb-1.5 text-sm font-semibold">Vencimento inicial</label>
             <input
               type="date"
               value={dataInicial}
               onChange={(event) => setDataInicial(event.target.value)}
-              className="w-full border rounded-lg p-3"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm"
             />
           </div>
           <div>
-            <label className="block mb-2 font-semibold">Vencimento final</label>
+            <label className="block mb-1.5 text-sm font-semibold">Vencimento final</label>
             <input
               type="date"
               value={dataFinal}
               onChange={(event) => setDataFinal(event.target.value)}
-              className="w-full border rounded-lg p-3"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm"
             />
           </div>
           <div>
-            <label className="block mb-2 font-semibold">Cliente</label>
+            <label className="block mb-1.5 text-sm font-semibold">Cliente</label>
             <input
               type="text"
               value={cliente}
               onChange={(event) => setCliente(event.target.value)}
               placeholder="Buscar cliente"
-              className="w-full border rounded-lg p-3"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm"
             />
           </div>
           <div>
-            <label className="block mb-2 font-semibold">Forma de pagamento</label>
+            <label className="block mb-1.5 text-sm font-semibold">Forma de pagamento</label>
             <select
               value={formaPagamento}
               onChange={(event) =>
                 setFormaPagamento(event.target.value as "" | FormaPagamento)
               }
-              className="w-full border rounded-lg p-3"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm"
             >
               <option value="">Todas</option>
               <option value="PIX">PIX</option>
@@ -397,37 +430,37 @@ export default function ContasReceber() {
           </div>
         </div>
 
-        <div className="mt-5 flex gap-3">
+        <div className="mt-4 flex gap-3">
           <button
             type="button"
             onClick={aplicarFiltros}
-            className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg"
+            className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold px-4 py-2 rounded-lg"
           >
             Aplicar filtros
           </button>
           <button
             type="button"
             onClick={limparFiltros}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+            className="bg-slate-500 hover:bg-slate-600 text-white text-sm font-semibold px-4 py-2 rounded-lg"
           >
             Limpar filtros
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md p-6 mb-6 border border-red-200">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-red-700">Contas atrasadas</h2>
-          <span className="font-bold text-red-700">
+      <div className="bg-white rounded-xl shadow-sm mb-5 border border-red-200 overflow-hidden">
+        <div className="flex justify-between items-center px-5 py-4 border-b border-red-100">
+          <h2 className="text-lg font-bold text-red-700">Contas atrasadas</h2>
+          <span className="text-sm font-bold text-red-700">
             {formatarMoeda(totalVencido)}
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px]">
-            <thead>
-              <tr className="border-b text-red-700">
-                <th className="text-left py-3">Cliente</th>
+          <table className="w-full min-w-[900px] text-sm">
+            <thead className="bg-red-50/70">
+              <tr className="border-b border-red-100 text-xs uppercase tracking-wide text-red-700">
+                <th className="text-left px-4 py-3">Cliente</th>
                 <th className="text-center">Parcela</th>
                 <th className="text-center">Vencimento</th>
                 <th className="text-center">Forma</th>
@@ -445,9 +478,9 @@ export default function ContasReceber() {
                   </td>
                 </tr>
               )}
-              {!carregando && contasAtrasadas.map((conta) => (
-                <tr key={conta.parcela_id} className="border-b bg-red-50/50">
-                  <td className="py-3">{conta.cliente}</td>
+              {!carregando && contasAtrasadas.map((conta, index) => (
+                <tr key={conta.parcela_id} className={`border-b border-slate-100 ${index % 2 === 0 ? "bg-white" : "bg-red-50/30"} hover:bg-red-50/60`}>
+                  <td className="px-4 py-2.5 text-[13px] font-medium text-slate-800">{conta.cliente}</td>
                   <td className="text-center">
                     {conta.numero_parcela}/{conta.total_parcelas}
                   </td>
@@ -462,8 +495,10 @@ export default function ContasReceber() {
                   <td className="text-right font-semibold text-red-700">
                     {formatarMoeda(conta.saldo)}
                   </td>
-                  <td className={`text-center text-sm font-bold ${corStatus(conta.status)}`}>
-                    {rotulo(conta.status)}
+                  <td className="text-center">
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${corStatus(conta.status)}`}>
+                      {rotulo(conta.status)}
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -472,19 +507,20 @@ export default function ContasReceber() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md p-6 overflow-x-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-blue-900">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="flex justify-between items-center px-5 py-4 border-b border-slate-200">
+          <h2 className="text-lg font-bold text-blue-900">
             Demais contas a receber
           </h2>
-          <span className="font-bold text-blue-900">
+          <span className="text-sm font-bold text-blue-900">
             {formatarMoeda(totalNoPeriodo)}
           </span>
         </div>
-        <table className="w-full min-w-[980px]">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-3">Cliente</th>
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[980px] text-sm">
+          <thead className="bg-slate-100/80">
+            <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-600">
+              <th className="text-left px-4 py-3">Cliente</th>
               <th className="text-center">Parcela</th>
               <th className="text-center">Vencimento</th>
               <th className="text-center">Forma</th>
@@ -509,9 +545,9 @@ export default function ContasReceber() {
                 </td>
               </tr>
             )}
-            {!carregando && contasEmDia.map((conta) => (
-              <tr key={conta.parcela_id} className="border-b hover:bg-slate-50">
-                <td className="py-3">{conta.cliente}</td>
+            {!carregando && contasEmDia.map((conta, index) => (
+              <tr key={conta.parcela_id} className={`border-b border-slate-100 ${index % 2 === 0 ? "bg-white" : "bg-blue-50/35"} hover:bg-blue-50/70`}>
+                <td className="px-4 py-2.5 text-[13px] font-medium text-slate-800">{conta.cliente}</td>
                 <td className="text-center">
                   {conta.numero_parcela}/{conta.total_parcelas}
                 </td>
@@ -524,39 +560,38 @@ export default function ContasReceber() {
                 <td className="text-right font-semibold text-orange-600">
                   {formatarMoeda(conta.saldo)}
                 </td>
-                <td className={`text-center text-sm font-bold ${corStatus(conta.status)}`}>
-                  {rotulo(conta.status)}
+                <td className="text-center">
+                  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${corStatus(conta.status)}`}>
+                    {rotulo(conta.status)}
+                  </span>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md p-6 mt-6 border border-amber-200 overflow-x-auto">
-        <div className="flex justify-between items-center mb-4">
+      <div className="bg-white rounded-xl shadow-sm mt-5 border border-amber-200 overflow-hidden">
+        <div className="flex justify-between items-center px-5 py-4 border-b border-amber-100">
           <div>
-            <h2 className="text-xl font-bold text-amber-700">
+            <h2 className="text-lg font-bold text-amber-700">
               Condicionados à entrega
             </h2>
             <p className="text-sm text-gray-600">
               Parcelas que serão recebidas após a entrega, sem vencimento obrigatório.
             </p>
           </div>
-          <span className="font-bold text-amber-700">
-            {formatarMoeda(
-              contasCondicionadas.reduce(
-                (total, conta) => total + conta.saldo,
-                0
-              )
-            )}
+          <span className="text-sm font-bold text-amber-700">
+            {formatarMoeda(totalCondicionado)}
           </span>
         </div>
 
-        <table className="w-full min-w-[850px]">
-          <thead>
-            <tr className="border-b text-amber-700">
-              <th className="text-left py-3">Cliente</th>
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[850px] text-sm">
+          <thead className="bg-amber-50/70">
+            <tr className="border-b border-amber-100 text-xs uppercase tracking-wide text-amber-700">
+              <th className="text-left px-4 py-3">Cliente</th>
               <th className="text-center">Parcela</th>
               <th className="text-right">Valor</th>
               <th className="text-right">Recebido</th>
@@ -573,9 +608,9 @@ export default function ContasReceber() {
                 </td>
               </tr>
             )}
-            {!carregando && contasCondicionadas.map((conta) => (
-              <tr key={conta.parcela_id} className="border-b bg-amber-50/50">
-                <td className="py-3">{conta.cliente}</td>
+            {!carregando && contasCondicionadas.map((conta, index) => (
+              <tr key={conta.parcela_id} className={`border-b border-slate-100 ${index % 2 === 0 ? "bg-white" : "bg-amber-50/35"} hover:bg-amber-50/70`}>
+                <td className="px-4 py-2.5 text-[13px] font-medium text-slate-800">{conta.cliente}</td>
                 <td className="text-center">
                   {conta.numero_parcela}/{conta.total_parcelas}
                 </td>
@@ -587,15 +622,20 @@ export default function ContasReceber() {
                   {formatarMoeda(conta.saldo)}
                 </td>
                 <td>{conta.descricao_entrega || "-"}</td>
-                <td className={`text-center text-sm font-bold ${corStatus(conta.status)}`}>
-                  {rotulo(conta.status)}
+                <td className="text-center">
+                  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${corStatus(conta.status)}`}>
+                    {rotulo(conta.status)}
+                  </span>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </>
   );
 }
+
+
 

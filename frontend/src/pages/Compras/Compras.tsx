@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { buscarProdutos } from "../../services/produtoSupabase";
 import { carregarGeradorPdf } from "../../services/geradorPdf";
+import { adicionarCabecalhoPdf } from "../../services/cabecalhoPdf";
 
 type ProdutoCompra = {
   id: number;
@@ -41,14 +42,12 @@ export default function Compras() {
   async function gerarPDF() {
     const { jsPDF, autoTable } = await carregarGeradorPdf();
     const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Visual Esquadrias", 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Lista de Compras - ${categoria}`, 14, 30);
-    doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 14, 38);
+    await adicionarCabecalhoPdf(doc, `Lista de Compras - ${categoria}`);
+    doc.setFontSize(10);
+    doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 14, 43);
 
     autoTable(doc, {
-      startY: 45,
+      startY: 49,
       head: [["Código", "Descrição", "Categoria", "Estoque", "Mínimo", "Comprar"]],
       body: produtosFiltrados.map((produto) => [
         produto.codigo,
@@ -105,4 +104,5 @@ export default function Compras() {
     </>
   );
 }
+
 

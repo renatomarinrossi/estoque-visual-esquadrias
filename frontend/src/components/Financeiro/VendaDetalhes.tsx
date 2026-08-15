@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 
 import type { Venda } from "../../types/Venda";
 import type { VendaParcela } from "../../types/VendaParcela";
@@ -14,6 +14,7 @@ import {
 import EditarRecebimentoModal from "./EditarRecebimentoModal";
 import ReceberParcelaModal from "./ReceberParcelaModal";
 import { carregarGeradorPdf } from "../../services/geradorPdf";
+import { adicionarCabecalhoPdf } from "../../services/cabecalhoPdf";
 
 type Props = {
   venda: Venda;
@@ -46,6 +47,7 @@ function corStatus(status: string) {
 export default function VendaDetalhes({ venda, onAtualizar, onArquivar }: Props) {
   const [parcelas, setParcelas] = useState<VendaParcela[]>([]);
   const [recebimentosPorParcela, setRecebimentosPorParcela] = useState<RecebimentosPorParcela>({});
+  const [parcelaExpandida, setParcelaExpandida] = useState<number | null>(null);
   const [modalAberto, setModalAberto] = useState(false);
   const [parcelaSelecionada, setParcelaSelecionada] = useState<VendaParcela | null>(null);
   const [recebimentoEditando, setRecebimentoEditando] = useState<VendaRecebimento | null>(null);
@@ -141,22 +143,19 @@ export default function VendaDetalhes({ venda, onAtualizar, onArquivar }: Props)
     const totalRecebidoVenda = parcelas.reduce((total, parcela) => total + totalRecebido(parcela.id), 0);
     const saldoVenda = Number(venda.valor_total) - totalRecebidoVenda;
 
-    doc.setFontSize(18);
-    doc.text("Estoque Visual Esquadrias", 14, 18);
-    doc.setFontSize(13);
-    doc.text(`Relatório da Venda #${venda.id ?? "-"}`, 14, 27);
+    await adicionarCabecalhoPdf(doc, `Relatório da Venda #${venda.id ?? "-"}`);
     doc.setFontSize(10);
-    doc.text(`Cliente: ${venda.cliente}`, 14, 36);
-    doc.text(`Responsável: ${venda.responsavel || "-"}`, 14, 42);
-    doc.text(`Data da venda: ${formatarData(venda.data_venda)}`, 14, 48);
-    doc.text(`Status: ${rotuloStatus(venda.status)}`, 14, 54);
-    doc.text(`Valor total: ${formatarMoeda(venda.valor_total)}`, 112, 36);
-    doc.text(`Total recebido: ${formatarMoeda(totalRecebidoVenda)}`, 112, 42);
-    doc.text(`Saldo: ${formatarMoeda(saldoVenda)}`, 112, 48);
-    doc.text(`Emitido em: ${new Date().toLocaleDateString("pt-BR")}`, 112, 54);
+    doc.text(`Cliente: ${venda.cliente}`, 14, 43);
+    doc.text(`Responsável: ${venda.responsavel || "-"}`, 14, 49);
+    doc.text(`Data da venda: ${formatarData(venda.data_venda)}`, 14, 55);
+    doc.text(`Status: ${rotuloStatus(venda.status)}`, 14, 61);
+    doc.text(`Valor total: ${formatarMoeda(venda.valor_total)}`, 112, 43);
+    doc.text(`Total recebido: ${formatarMoeda(totalRecebidoVenda)}`, 112, 49);
+    doc.text(`Saldo: ${formatarMoeda(saldoVenda)}`, 112, 55);
+    doc.text(`Emitido em: ${new Date().toLocaleDateString("pt-BR")}`, 112, 61);
 
     autoTable(doc, {
-      startY: 62,
+      startY: 69,
       head: [["Parcela", "Vencimento", "Forma", "Valor", "Recebido", "Saldo", "Status"]],
       body: parcelas.map((parcela) => {
         const recebido = totalRecebido(parcela.id);
@@ -233,50 +232,42 @@ export default function VendaDetalhes({ venda, onAtualizar, onArquivar }: Props)
         {carregando && <div className="italic text-gray-500">Carregando parcelas...</div>}
         {!carregando && parcelas.length === 0 && <div className="italic text-gray-500">Nenhuma parcela cadastrada.</div>}
 
-        {parcelas.map((parcela) => {
-          const recebimentos = recebimentosPorParcela[parcela.id ?? 0] ?? [];
-          const recebido = totalRecebido(parcela.id);
-          const saldo = Number(parcela.valor) - recebido;
-          const podeReceber = parcela.status === "A_RECEBER" || parcela.status === "PARCIALMENTE_RECEBIDO";
+        {!carregando && parcelas.length > 0 && (
+          <div className="overflow-x-auto rounded-lg border bg-white">
+            <table className="w-full min-w-[1120px] text-sm">
+              <thead><tr className="border-b bg-blue-50/70 text-blue-950"><th className="w-10 px-3 py-3"></th><th className="px-3 text-left">Parcela</th><th className="px-3 text-left">Vencimento</th><th className="px-3 text-left">Forma</th><th className="px-3 text-right">Valor</th><th className="px-3 text-right">Recebido</th><th className="px-3 text-right">Saldo</th><th className="px-3 text-center">Status</th><th className="px-3 text-right">Ações</th></tr></thead>
+              <tbody>{parcelas.map((parcela, indice) => {
+                const recebimentos = recebimentosPorParcela[parcela.id ?? 0] ?? [];
+                const recebido = totalRecebido(parcela.id);
+                const saldo = Number(parcela.valor) - recebido;
+                const podeReceber = parcela.status === "A_RECEBER" || parcela.status === "PARCIALMENTE_RECEBIDO";
+                const chaveParcela = parcela.id ?? -parcela.numero_parcela;
+                const expandida = parcelaExpandida === chaveParcela;
 
-          return (
-            <div key={parcela.id ?? parcela.numero_parcela} className="mb-3 rounded-lg border bg-white p-4">
-              <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-3 xl:grid-cols-6">
-                <div><strong>Parcela</strong><div>{parcela.numero_parcela}/{parcela.total_parcelas}</div></div>
-                <div><strong>Vencimento</strong><div>{formatarData(parcela.data_vencimento)}</div></div>
-                <div><strong>Forma</strong><div>{rotuloStatus(parcela.forma_pagamento)}</div></div>
-                <div><strong>Valor</strong><div>{formatarMoeda(parcela.valor)}</div></div>
-                <div><strong>Status</strong><div className={`font-bold ${corStatus(parcela.status)}`}>{rotuloStatus(parcela.status)}</div></div>
-                <div className="md:text-right">{podeReceber && <button type="button" onClick={() => abrirRecebimento(parcela)} className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700">{parcela.status === "PARCIALMENTE_RECEBIDO" ? "Receber saldo" : "Receber"}</button>}</div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-1 gap-3 border-t pt-3 sm:grid-cols-3">
-                <div><strong>Recebido</strong><div className="text-green-700">{formatarMoeda(recebido)}</div></div>
-                <div><strong>Saldo</strong><div className={saldo > 0 ? "text-orange-600" : "text-green-700"}>{formatarMoeda(saldo)}</div></div>
-                {parcela.forma_pagamento === "CONDICIONADO_ENTREGA" && <div><strong>Descrição do condicionado</strong><div>{parcela.descricao_entrega || "-"}</div></div>}
-              </div>
-
-              <div className="mt-4 border-t pt-3">
-                <strong>Histórico de recebimentos</strong>
-                {recebimentos.length === 0 ? <div className="mt-2 text-gray-500">Nenhum recebimento registrado.</div> : (
-                  <div className="mt-2 overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead><tr className="border-b text-left text-gray-500"><th className="py-2 pr-3">Data</th><th className="py-2 pr-3">Valor</th><th className="py-2 pr-3">Observação</th><th className="py-2 text-right">Ações</th></tr></thead>
-                      <tbody>{recebimentos.map((recebimento) => (
-                        <tr key={recebimento.id} className="border-b last:border-0">
-                          <td className="py-2 pr-3">{formatarData(recebimento.data_recebimento)}</td>
-                          <td className="py-2 pr-3 text-green-700">{formatarMoeda(recebimento.valor)}</td>
-                          <td className="py-2 pr-3">{recebimento.observacao || "-"}</td>
-                          <td className="py-2 text-right"><button type="button" onClick={() => setRecebimentoEditando(recebimento)} className="mr-2 text-blue-700 hover:underline">Alterar</button><button type="button" onClick={() => void removerRecebimento(recebimento)} className="text-red-600 hover:underline">Excluir</button></td>
-                        </tr>
-                      ))}</tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+                return (
+                  <Fragment key={chaveParcela}>
+                    <tr className={`border-b transition-colors hover:bg-blue-50 ${indice % 2 === 0 ? "bg-white" : "bg-slate-50/70"}`}>
+                      <td className="px-3 py-3 text-center"><button type="button" onClick={() => setParcelaExpandida(expandida ? null : chaveParcela)} className="text-lg font-bold text-blue-700" aria-label={expandida ? "Fechar detalhes" : "Abrir detalhes"}>{expandida ? "⌄" : "›"}</button></td>
+                      <td className="px-3 py-3 font-semibold">{parcela.numero_parcela}/{parcela.total_parcelas}</td>
+                      <td className="px-3">{formatarData(parcela.data_vencimento)}</td>
+                      <td className="px-3">{rotuloStatus(parcela.forma_pagamento)}</td>
+                      <td className="px-3 text-right tabular-nums">{formatarMoeda(parcela.valor)}</td>
+                      <td className="px-3 text-right text-green-700 tabular-nums">{formatarMoeda(recebido)}</td>
+                      <td className={`px-3 text-right font-semibold tabular-nums ${saldo > 0 ? "text-orange-600" : "text-green-700"}`}>{formatarMoeda(saldo)}</td>
+                      <td className={`px-3 text-center font-bold ${corStatus(parcela.status)}`}>{rotuloStatus(parcela.status)}</td>
+                      <td className="px-3 text-right">{podeReceber && <button type="button" onClick={() => abrirRecebimento(parcela)} className="rounded-md bg-green-600 px-3 py-1.5 font-semibold text-white hover:bg-green-700">{parcela.status === "PARCIALMENTE_RECEBIDO" ? "Receber saldo" : "Receber"}</button>}</td>
+                    </tr>
+                    {expandida && <tr className="border-b bg-slate-50"><td colSpan={9} className="p-4">
+                      {parcela.forma_pagamento === "CONDICIONADO_ENTREGA" && <div className="mb-3 text-sm"><strong>Descrição do condicionado:</strong> {parcela.descricao_entrega || "-"}</div>}
+                      <strong>Histórico de recebimentos</strong>
+                      {recebimentos.length === 0 ? <div className="mt-2 text-gray-500">Nenhum recebimento registrado.</div> : <div className="mt-2 overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b text-left text-gray-500"><th className="py-2 pr-3">Data</th><th className="py-2 pr-3">Valor</th><th className="py-2 pr-3">Observação</th><th className="py-2 text-right">Ações</th></tr></thead><tbody>{recebimentos.map((recebimento) => <tr key={recebimento.id} className="border-b last:border-0"><td className="py-2 pr-3">{formatarData(recebimento.data_recebimento)}</td><td className="py-2 pr-3 text-green-700">{formatarMoeda(recebimento.valor)}</td><td className="py-2 pr-3">{recebimento.observacao || "-"}</td><td className="py-2 text-right"><button type="button" onClick={() => setRecebimentoEditando(recebimento)} className="mr-2 text-blue-700 hover:underline">Alterar</button><button type="button" onClick={() => void removerRecebimento(recebimento)} className="text-red-600 hover:underline">Excluir</button></td></tr>)}</tbody></table></div>}
+                    </td></tr>}
+                  </Fragment>
+                );
+              })}</tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <ReceberParcelaModal aberto={modalAberto} valorParcela={parcelaSelecionada?.valor ?? 0} totalRecebido={totalRecebido(parcelaSelecionada?.id)} onCancelar={fecharRecebimento} onConfirmar={confirmarRecebimento} />
@@ -284,5 +275,6 @@ export default function VendaDetalhes({ venda, onAtualizar, onArquivar }: Props)
     </>
   );
 }
+
 
 

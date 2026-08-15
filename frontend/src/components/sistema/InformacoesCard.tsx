@@ -48,10 +48,11 @@ export default function InformacoesCard({
 
         <br />
 
-        Controle de Estoque
+        Desenvolvido por <span className="font-bold">Renato Rossi</span>
 
       </div>
 
     </div>
   );
 }
+
