@@ -18,6 +18,8 @@ function criarVendaVazia(): Venda {
     cliente: "",
     valor_total: 0,
     responsavel: "",
+    endereco: "",
+    cidade: "",
     status: "A_RECEBER",
     observacoes: "",
   };
@@ -209,6 +211,7 @@ export default function Vendas({ obrasFinalizadas = false }: Props) {
     </>
   );
 }
+
 
 
 

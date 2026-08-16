@@ -86,6 +86,8 @@ export default function VendaForm({
 
     const cliente = venda.cliente.trim();
     const responsavel = venda.responsavel.trim();
+    const endereco = (venda.endereco ?? "").trim();
+    const cidade = (venda.cidade ?? "").trim();
     const observacoes = venda.observacoes.trim();
     const valorTotal = Number(venda.valor_total);
     const totalParcelas = parcelas.reduce(
@@ -137,6 +139,8 @@ export default function VendaForm({
         ...venda,
         cliente,
         responsavel,
+        endereco,
+        cidade,
         observacoes,
         valor_total: valorTotal,
       },
@@ -147,37 +151,37 @@ export default function VendaForm({
   return (
     <form
       onSubmit={salvar}
-      className="bg-white rounded-xl shadow-md p-6 mb-8"
+      className="mb-6 rounded-xl border border-slate-200 bg-white p-5 text-sm shadow-sm"
     >
-      <h2 className="text-2xl font-bold text-blue-900 mb-6">
+      <h2 className="mb-5 text-xl font-bold text-blue-900">
         {venda.id ? "Editar venda" : "Nova venda"}
       </h2>
 
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="block mb-2 font-semibold">Cliente</label>
+          <label className="mb-1.5 block font-semibold">Cliente</label>
           <input
             type="text"
             value={venda.cliente}
             onChange={(event) => alterarCampo("cliente", event.target.value)}
-            className="w-full border rounded-lg p-3"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm"
           />
         </div>
 
         <div>
-          <label className="block mb-2 font-semibold">Data da venda</label>
+          <label className="mb-1.5 block font-semibold">Data da venda</label>
           <input
             type="date"
             value={venda.data_venda}
             onChange={(event) =>
               alterarCampo("data_venda", event.target.value)
             }
-            className="w-full border rounded-lg p-3"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm"
           />
         </div>
 
         <div>
-          <label className="block mb-2 font-semibold">Valor total</label>
+          <label className="mb-1.5 block font-semibold">Valor total</label>
           <input
             type="number"
             min="0"
@@ -186,57 +190,75 @@ export default function VendaForm({
             onChange={(event) =>
               alterarCampo("valor_total", Number(event.target.value))
             }
-            className="w-full border rounded-lg p-3"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm"
           />
         </div>
 
         <div>
-          <label className="block mb-2 font-semibold">Responsável</label>
+          <label className="mb-1.5 block font-semibold">Responsável</label>
           <input
             type="text"
             value={venda.responsavel}
             onChange={(event) =>
               alterarCampo("responsavel", event.target.value)
             }
-            className="w-full border rounded-lg p-3"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm"
           />
         </div>
 
         <div>
-          <label className="block mb-2 font-semibold">Status da venda</label>
-          <div className="w-full border rounded-lg p-3 bg-slate-100 text-gray-600">
+          <label className="mb-1.5 block font-semibold">Endereço</label>
+          <input
+            type="text"
+            value={venda.endereco ?? ""}
+            onChange={(event) =>
+              alterarCampo("endereco", event.target.value)
+            }
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block font-semibold">Cidade</label>
+          <input
+            type="text"
+            value={venda.cidade ?? ""}
+            onChange={(event) =>
+              alterarCampo("cidade", event.target.value)
+            }
+            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block font-semibold">Status da venda</label>
+          <div className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2.5 text-sm text-gray-600">
             {rotuloStatus(venda.status)}
           </div>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-xs text-gray-500">
             O status é atualizado automaticamente conforme os recebimentos das
             parcelas.
           </p>
         </div>
       </div>
 
-      <div className="mt-5">
-        <label className="block mb-2 font-semibold">Observações</label>
+      <div className="mt-4">
+        <label className="mb-1.5 block font-semibold">Observações</label>
         <textarea
-          rows={4}
+          rows={3}
           value={venda.observacoes}
           onChange={(event) =>
             alterarCampo("observacoes", event.target.value)
           }
-          className="w-full border rounded-lg p-3"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm"
         />
       </div>
 
-      {carregandoParcelas ? (
-        <div className="mt-8 text-gray-500">Carregando parcelas...</div>
-      ) : (
-        <ParcelasForm parcelas={parcelas} setParcelas={setParcelas} />
-      )}
-
-      <div className="flex justify-end gap-3 mt-8">
+      <div className="mt-4 flex justify-end gap-3 border-b border-slate-200 pb-5">
         <button
           type="button"
           onClick={onCancelar}
-          className="bg-gray-500 hover:bg-gray-600 text-white px-5 py-2 rounded-lg"
+          className="rounded-lg bg-gray-500 px-5 py-2 text-sm font-medium text-white hover:bg-gray-600"
         >
           Cancelar
         </button>
@@ -244,11 +266,18 @@ export default function VendaForm({
         <button
           type="submit"
           disabled={carregandoParcelas}
-          className="bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white px-5 py-2 rounded-lg"
+          className="rounded-lg bg-blue-700 px-5 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:bg-blue-400"
         >
           Salvar
         </button>
       </div>
+
+      {carregandoParcelas ? (
+        <div className="mt-5 text-gray-500">Carregando parcelas...</div>
+      ) : (
+        <ParcelasForm parcelas={parcelas} setParcelas={setParcelas} />
+      )}
     </form>
   );
 }
+

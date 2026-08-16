@@ -64,6 +64,8 @@ export async function salvarVendaComParcelas(
     p_cliente: venda.cliente,
     p_valor_total: Number(venda.valor_total),
     p_responsavel: venda.responsavel,
+    p_endereco: venda.endereco ?? "",
+    p_cidade: venda.cidade ?? "",
     p_observacoes: venda.observacoes,
     p_parcelas: prepararParcelas(parcelas),
   });
@@ -87,6 +89,8 @@ export async function inserirVenda(venda: Venda): Promise<Venda> {
       cliente: venda.cliente,
       valor_total: venda.valor_total,
       responsavel: venda.responsavel,
+      endereco: venda.endereco ?? "",
+      cidade: venda.cidade ?? "",
       status: "A_RECEBER",
       observacoes: venda.observacoes,
     })
@@ -108,6 +112,8 @@ export async function atualizarVenda(venda: Venda): Promise<Venda> {
       cliente: venda.cliente,
       valor_total: venda.valor_total,
       responsavel: venda.responsavel,
+      endereco: venda.endereco ?? "",
+      cidade: venda.cidade ?? "",
       observacoes: venda.observacoes,
     })
     .eq("id", venda.id)
@@ -161,5 +167,6 @@ export async function restaurarVenda(id: number): Promise<void> {
 
   if (error) throw error;
 }
+
 
 

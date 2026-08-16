@@ -101,7 +101,7 @@ export default function VendaTable({
             return (
               <Fragment key={venda.id}>
                 <tr className={`border-b transition-colors hover:bg-blue-50 ${indice % 2 === 0 ? "bg-white" : "bg-slate-50/70"}`}>
-                  <td className="px-3 py-4">{venda.id ? <button type="button" onClick={() => alternarVenda(venda.id!)} className="font-semibold text-blue-700 hover:text-blue-900">{vendaExpandida === venda.id ? "⌄ " : "› "}{venda.cliente}</button> : <span className="font-semibold">{venda.cliente}</span>}</td>
+                  <td className="px-3 py-4">{venda.id ? <button type="button" onClick={() => alternarVenda(venda.id!)} className="text-[13px] font-semibold leading-snug text-blue-700 hover:text-blue-900">{vendaExpandida === venda.id ? "⌄ " : "› "}{venda.cliente}</button> : <span className="text-[13px] font-semibold leading-snug">{venda.cliente}</span>}</td>
                   <td className="text-center">{carregandoResumo ? <span className="text-gray-500">Carregando...</span> : proximaParcela ? <div><div>{formatarData(proximaParcela.data_vencimento)}</div><div className="text-sm text-gray-500">{formatarMoeda(proximaParcela.valor)}</div></div> : <span className="text-gray-500">-</span>}</td>
                   <td className="px-3 text-right tabular-nums">{formatarMoeda(venda.valor_total)}</td>
                   <td className="px-3 text-center"><span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${corStatus(venda.status)}`}>{rotuloStatus(venda.status)}</span></td>
@@ -125,7 +125,7 @@ export default function VendaTable({
                     </div>
                   </td>
                 </tr>
-                {vendaExpandida === venda.id && <tr className="bg-slate-50"><td colSpan={6} className="p-4"><VendaDetalhes venda={venda} onAtualizar={atualizarDadosVenda} onArquivar={obrasFinalizadas ? undefined : onArquivar} /></td></tr>}
+                {vendaExpandida === venda.id && <tr className="bg-slate-50"><td colSpan={6} className="max-w-0 p-2"><div className="min-w-0 max-w-full"><VendaDetalhes venda={venda} onAtualizar={atualizarDadosVenda} onArquivar={obrasFinalizadas ? undefined : onArquivar} /></div></td></tr>}
               </Fragment>
             );
           })}
@@ -134,6 +134,7 @@ export default function VendaTable({
     </div>
   );
 }
+
 
 
 

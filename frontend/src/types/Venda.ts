@@ -14,6 +14,10 @@ export type Venda = {
 
   responsavel: string;
 
+  endereco?: string;
+
+  cidade?: string;
+
   status: VendaStatus;
 
   observacoes: string;
@@ -24,4 +28,5 @@ export type Venda = {
 
   created_at?: string;
 };
+
 

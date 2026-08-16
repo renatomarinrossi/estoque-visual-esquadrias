@@ -148,14 +148,16 @@ export default function VendaDetalhes({ venda, onAtualizar, onArquivar }: Props)
     doc.text(`Cliente: ${venda.cliente}`, 14, 43);
     doc.text(`Responsável: ${venda.responsavel || "-"}`, 14, 49);
     doc.text(`Data da venda: ${formatarData(venda.data_venda)}`, 14, 55);
-    doc.text(`Status: ${rotuloStatus(venda.status)}`, 14, 61);
+    doc.text(`Endereço: ${(venda.endereco ?? "").trim() || "-"}`, 14, 61);
+    doc.text(`Cidade: ${(venda.cidade ?? "").trim() || "-"}`, 14, 67);
+    doc.text(`Status: ${rotuloStatus(venda.status)}`, 14, 73);
     doc.text(`Valor total: ${formatarMoeda(venda.valor_total)}`, 112, 43);
     doc.text(`Total recebido: ${formatarMoeda(totalRecebidoVenda)}`, 112, 49);
     doc.text(`Saldo: ${formatarMoeda(saldoVenda)}`, 112, 55);
     doc.text(`Emitido em: ${new Date().toLocaleDateString("pt-BR")}`, 112, 61);
 
     autoTable(doc, {
-      startY: 69,
+      startY: 81,
       head: [["Parcela", "Vencimento", "Forma", "Valor", "Recebido", "Saldo", "Status"]],
       body: parcelas.map((parcela) => {
         const recebido = totalRecebido(parcela.id);
@@ -203,23 +205,25 @@ export default function VendaDetalhes({ venda, onAtualizar, onArquivar }: Props)
 
   return (
     <>
-      <div className="rounded-lg bg-slate-100 p-6">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="min-w-0 max-w-full overflow-hidden rounded-lg bg-slate-100 p-4 text-sm">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
             <p><strong>Cliente</strong><br />{venda.cliente}</p>
             <p><strong>Responsável</strong><br />{venda.responsavel || "-"}</p>
             <p><strong>Data da venda</strong><br />{formatarData(venda.data_venda)}</p>
             <p><strong>Valor total</strong><br />{formatarMoeda(venda.valor_total)}</p>
+            <p><strong>Endereço</strong><br />{(venda.endereco ?? "").trim() || "-"}</p>
+            <p><strong>Cidade</strong><br />{(venda.cidade ?? "").trim() || "-"}</p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <button type="button" onClick={gerarRelatorio} disabled={carregando} className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:bg-red-400">Gerar PDF</button>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <button type="button" onClick={gerarRelatorio} disabled={carregando} className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:bg-red-400">Gerar PDF</button>
             {onArquivar && (
               <button
                 type="button"
                 onClick={() => void confirmarArquivamento()}
                 disabled={carregando || venda.status !== "RECEBIDO"}
                 title={venda.status !== "RECEBIDO" ? "A obra só pode ser finalizada quando todas as parcelas estiverem recebidas." : ""}
-                className="rounded-lg bg-blue-700 px-4 py-2 text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                className="rounded-md bg-blue-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-400"
               >
                 Arquivar
               </button>
@@ -227,15 +231,15 @@ export default function VendaDetalhes({ venda, onAtualizar, onArquivar }: Props)
           </div>
         </div>
 
-        <div className="mb-6"><strong>Observações</strong><div className="mt-2 rounded-lg bg-white p-3">{venda.observacoes || "-"}</div></div>
-        <h3 className="mb-4 text-xl font-bold">Parcelas</h3>
+        <div className="mb-4"><strong>Observações</strong><div className="mt-1.5 rounded-lg bg-white p-2.5">{venda.observacoes || "-"}</div></div>
+        <h3 className="mb-3 text-lg font-bold">Parcelas</h3>
         {carregando && <div className="italic text-gray-500">Carregando parcelas...</div>}
         {!carregando && parcelas.length === 0 && <div className="italic text-gray-500">Nenhuma parcela cadastrada.</div>}
 
         {!carregando && parcelas.length > 0 && (
-          <div className="overflow-x-auto rounded-lg border bg-white">
-            <table className="w-full min-w-[1120px] text-sm">
-              <thead><tr className="border-b bg-blue-50/70 text-blue-950"><th className="w-10 px-3 py-3"></th><th className="px-3 text-left">Parcela</th><th className="px-3 text-left">Vencimento</th><th className="px-3 text-left">Forma</th><th className="px-3 text-right">Valor</th><th className="px-3 text-right">Recebido</th><th className="px-3 text-right">Saldo</th><th className="px-3 text-center">Status</th><th className="px-3 text-right">Ações</th></tr></thead>
+          <div className="max-w-full overflow-x-auto rounded-lg border bg-white">
+            <table className="w-full min-w-[860px] text-xs">
+              <thead><tr className="border-b bg-blue-50/70 text-blue-950"><th className="w-8 px-2 py-2.5"></th><th className="px-2 text-left">Parcela</th><th className="px-2 text-left">Vencimento</th><th className="px-2 text-left">Forma</th><th className="px-2 text-right">Valor</th><th className="px-2 text-right">Recebido</th><th className="px-2 text-right">Saldo</th><th className="px-2 text-center">Status</th><th className="px-2 text-right">Ações</th></tr></thead>
               <tbody>{parcelas.map((parcela, indice) => {
                 const recebimentos = recebimentosPorParcela[parcela.id ?? 0] ?? [];
                 const recebido = totalRecebido(parcela.id);
@@ -247,15 +251,15 @@ export default function VendaDetalhes({ venda, onAtualizar, onArquivar }: Props)
                 return (
                   <Fragment key={chaveParcela}>
                     <tr className={`border-b transition-colors hover:bg-blue-50 ${indice % 2 === 0 ? "bg-white" : "bg-slate-50/70"}`}>
-                      <td className="px-3 py-3 text-center"><button type="button" onClick={() => setParcelaExpandida(expandida ? null : chaveParcela)} className="text-lg font-bold text-blue-700" aria-label={expandida ? "Fechar detalhes" : "Abrir detalhes"}>{expandida ? "⌄" : "›"}</button></td>
-                      <td className="px-3 py-3 font-semibold">{parcela.numero_parcela}/{parcela.total_parcelas}</td>
-                      <td className="px-3">{formatarData(parcela.data_vencimento)}</td>
-                      <td className="px-3">{rotuloStatus(parcela.forma_pagamento)}</td>
-                      <td className="px-3 text-right tabular-nums">{formatarMoeda(parcela.valor)}</td>
-                      <td className="px-3 text-right text-green-700 tabular-nums">{formatarMoeda(recebido)}</td>
-                      <td className={`px-3 text-right font-semibold tabular-nums ${saldo > 0 ? "text-orange-600" : "text-green-700"}`}>{formatarMoeda(saldo)}</td>
-                      <td className={`px-3 text-center font-bold ${corStatus(parcela.status)}`}>{rotuloStatus(parcela.status)}</td>
-                      <td className="px-3 text-right">{podeReceber && <button type="button" onClick={() => abrirRecebimento(parcela)} className="rounded-md bg-green-600 px-3 py-1.5 font-semibold text-white hover:bg-green-700">{parcela.status === "PARCIALMENTE_RECEBIDO" ? "Receber saldo" : "Receber"}</button>}</td>
+                      <td className="px-2 py-2.5 text-center"><button type="button" onClick={() => setParcelaExpandida(expandida ? null : chaveParcela)} className="text-base font-bold text-blue-700" aria-label={expandida ? "Fechar detalhes" : "Abrir detalhes"}>{expandida ? "⌄" : "›"}</button></td>
+                      <td className="px-2 py-2.5 font-semibold">{parcela.numero_parcela}/{parcela.total_parcelas}</td>
+                      <td className="px-2">{formatarData(parcela.data_vencimento)}</td>
+                      <td className="px-2">{rotuloStatus(parcela.forma_pagamento)}</td>
+                      <td className="px-2 text-right tabular-nums">{formatarMoeda(parcela.valor)}</td>
+                      <td className="px-2 text-right text-green-700 tabular-nums">{formatarMoeda(recebido)}</td>
+                      <td className={`px-2 text-right font-semibold tabular-nums ${saldo > 0 ? "text-orange-600" : "text-green-700"}`}>{formatarMoeda(saldo)}</td>
+                      <td className={`px-2 text-center font-bold ${corStatus(parcela.status)}`}>{rotuloStatus(parcela.status)}</td>
+                      <td className="px-2 text-right">{podeReceber && <button type="button" onClick={() => abrirRecebimento(parcela)} className="whitespace-nowrap rounded-md bg-green-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-green-700">{parcela.status === "PARCIALMENTE_RECEBIDO" ? "Receber saldo" : "Receber"}</button>}</td>
                     </tr>
                     {expandida && <tr className="border-b bg-slate-50"><td colSpan={9} className="p-4">
                       {parcela.forma_pagamento === "CONDICIONADO_ENTREGA" && <div className="mb-3 text-sm"><strong>Descrição do condicionado:</strong> {parcela.descricao_entrega || "-"}</div>}
@@ -275,6 +279,7 @@ export default function VendaDetalhes({ venda, onAtualizar, onArquivar }: Props)
     </>
   );
 }
+
 
 
 
