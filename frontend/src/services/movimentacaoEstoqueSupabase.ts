@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 
 export type FiltrosMovimentacao = {
+  pagina?: number;
   dataInicial?: string;
   dataFinal?: string;
   produto?: string;
@@ -32,10 +33,10 @@ export async function buscarMovimentacoesEstoque(
       saldo_resultante,
       preco_compra,
       data_movimentacao,
-      produtos (codigo, descricao),
+      produtos!inner (codigo, descricao),
       usuarios (nome, login)
     `)
-    .order("data_movimentacao", { ascending: false });
+    .order("data_movimentacao", { ascending: false }).order("id",{ascending:false});
 
   if (filtros.dataInicial) {
     consulta = consulta.gte("data_movimentacao", `${filtros.dataInicial}T00:00:00`);
@@ -49,7 +50,12 @@ export async function buscarMovimentacoesEstoque(
     consulta = consulta.eq("tipo", filtros.tipo);
   }
 
-  const { data, error } = await consulta;
+  if(filtros.produto?.trim()) {
+    const termo=filtros.produto.trim().replace(/[%,_().]/g," ");
+    consulta=consulta.or("codigo.ilike.*"+termo+"*,descricao.ilike.*"+termo+"*",{referencedTable:"produtos"});
+  }
+  const pagina=filtros.pagina??0;
+  const { data, error } = await consulta.range(pagina*100,pagina*100+99);
 
   if (error) throw error;
 
@@ -68,14 +74,5 @@ export async function buscarMovimentacoesEstoque(
       ? (registro.usuarios[0] as { nome: string; login: string } | undefined) ?? null
       : (registro.usuarios as { nome: string; login: string } | null),
   }));
-  const busca = filtros.produto?.trim().toLocaleLowerCase("pt-BR");
-
-  if (!busca) return movimentacoes;
-
-  return movimentacoes.filter((movimentacao) => {
-    const descricao = movimentacao.produtos?.descricao.toLocaleLowerCase("pt-BR") ?? "";
-    const codigo = movimentacao.produtos?.codigo.toLocaleLowerCase("pt-BR") ?? "";
-    return descricao.includes(busca) || codigo.includes(busca);
-  });
+  return movimentacoes;
 }
-

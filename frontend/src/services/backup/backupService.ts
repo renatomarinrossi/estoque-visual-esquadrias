@@ -1,42 +1,13 @@
 import { gerarBackup } from "../sistemaSupabase";
-
-export async function fazerBackupCompleto() {
-  const backup = await gerarBackup();
-
-  const json = JSON.stringify(
-    {
-      sistema: "Estoque Visual Esquadrias",
-      empresa: "Visual Esquadrias",
-      versaoSistema: backup.versaoSistema,
-      backupVersion: backup.backupVersion,
-      dataBackup: backup.dataBackup,
-      fornecedores: backup.fornecedores,
-      produtos: backup.produtos,
-      lixeira: backup.lixeira,
-      usuarios: backup.usuarios,
-      vendas: backup.vendas,
-      vendas_parcelas: backup.vendasParcelas,
-      vendas_recebimentos: backup.vendasRecebimentos,
-      contas_pagar: backup.contasPagar,
-    },
-    null,
-    2
-  );
-
-  const blob = new Blob([json], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  const data = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
-
-  link.href = url;
-  link.download = `Backup-Estoque-Visual-Esquadrias-${data}.json`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-
-  const dataHora = new Date().toLocaleString("pt-BR");
-  localStorage.setItem("ultimoBackup", dataHora);
-
-  return dataHora;
+export function baixarJson(dados: unknown, nome: string) {
+ const blob=new Blob([JSON.stringify(dados,null,2)],{type:"application/json"});
+ if(blob.size>50*1024*1024)throw new Error("Backup excede 50 MB. Use o procedimento de backup PostgreSQL documentado.");
+ const url=URL.createObjectURL(blob);const link=document.createElement("a");
+ link.href=url;link.download=nome;document.body.appendChild(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+export async function fazerBackupCompleto(finalidade="MANUAL") {
+ const backup=await gerarBackup(finalidade);
+ baixarJson(backup,"Backup-Operacional-"+finalidade+"-"+new Date().toISOString().replace(/[:.]/g,"-")+".json");
+ return new Date(backup.dataBackup).toLocaleString("pt-BR");
 }

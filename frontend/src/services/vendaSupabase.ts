@@ -3,12 +3,13 @@ import { supabase } from "./supabase";
 import type { Venda } from "../types/Venda";
 import type { VendaParcela } from "../types/VendaParcela";
 
-export async function buscarVendas(arquivadas = false): Promise<Venda[]> {
+export async function buscarVendas(arquivadas = false, pagina = 0, busca = ""): Promise<Venda[]> {
   const { data, error } = await supabase
     .from("vendas")
-    .select("*")
+    .select("id,data_venda,cliente,valor_total,responsavel,endereco,cidade,status,observacoes,arquivada,arquivada_em,created_at")
     .eq("arquivada", arquivadas)
-    .order("data_venda", { ascending: false });
+    .ilike("cliente", "%"+busca.trim().replace(/[%_]/g, c => "\\"+c)+"%")
+    .order("data_venda", { ascending: false }).order("id", {ascending:false}).range(pagina*50,pagina*50+49);
 
   if (error) throw error;
 
@@ -80,73 +81,8 @@ export async function salvarVendaComParcelas(
   return vendaId;
 }
 
-// Mantidas para compatibilidade com outros pontos do sistema.
-export async function inserirVenda(venda: Venda): Promise<Venda> {
-  const { data, error } = await supabase
-    .from("vendas")
-    .insert({
-      data_venda: venda.data_venda,
-      cliente: venda.cliente,
-      valor_total: venda.valor_total,
-      responsavel: venda.responsavel,
-      endereco: venda.endereco ?? "",
-      cidade: venda.cidade ?? "",
-      status: "A_RECEBER",
-      observacoes: venda.observacoes,
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  return data as Venda;
-}
-
-export async function atualizarVenda(venda: Venda): Promise<Venda> {
-  if (!venda.id) throw new Error("Venda sem ID.");
-
-  const { data, error } = await supabase
-    .from("vendas")
-    .update({
-      data_venda: venda.data_venda,
-      cliente: venda.cliente,
-      valor_total: venda.valor_total,
-      responsavel: venda.responsavel,
-      endereco: venda.endereco ?? "",
-      cidade: venda.cidade ?? "",
-      observacoes: venda.observacoes,
-    })
-    .eq("id", venda.id)
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  return data as Venda;
-}
-
-export async function atualizarStatusVenda(vendaId: number): Promise<void> {
-  const { data: parcelas, error: erroParcelas } = await supabase
-    .from("vendas_parcelas")
-    .select("status")
-    .eq("venda_id", vendaId);
-
-  if (erroParcelas) throw erroParcelas;
-
-  const todasRecebidas =
-    (parcelas?.length ?? 0) > 0 &&
-    parcelas?.every((parcela) => parcela.status === "RECEBIDO");
-
-  const { error } = await supabase
-    .from("vendas")
-    .update({ status: todasRecebidas ? "RECEBIDO" : "A_RECEBER" })
-    .eq("id", vendaId);
-
-  if (error) throw error;
-}
-
 export async function excluirVenda(id: number): Promise<void> {
-  const { error } = await supabase.from("vendas").delete().eq("id", id);
+  const { error } = await supabase.rpc("operar_venda", { p_id: id, p_acao: "EXCLUIR" });
 
   if (error) throw error;
 }
@@ -160,13 +96,9 @@ export async function arquivarVenda(id: number): Promise<void> {
 }
 
 export async function restaurarVenda(id: number): Promise<void> {
-  const { error } = await supabase
-    .from("vendas")
-    .update({ arquivada: false, arquivada_em: null })
-    .eq("id", id);
+  const { error } = await supabase.rpc("operar_venda", { p_id: id, p_acao: "RESTAURAR" });
 
   if (error) throw error;
 }
-
 
 

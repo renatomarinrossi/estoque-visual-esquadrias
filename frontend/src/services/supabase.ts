@@ -1,7 +1,18 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = "https://ukakbfidmmtkntbftsda.supabase.co";
-const supabaseKey = "sb_publishable_Qx9P1m8N_AAzCcvExmxtyQ__Qw6tIxH";
+const supabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL ||
+  "https://ukakbfidmmtkntbftsda.supabase.co";
+const supabaseKey =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  "sb_publishable_Qx9P1m8N_AAzCcvExmxtyQ__Qw6tIxH";
+
+if (
+  window.location.hostname === "demo.visualesquadrias.com" &&
+  new URL(supabaseUrl).hostname !== "jnaojtkggsedzauizxgh.supabase.co"
+) {
+  throw new Error("A demonstração exige a configuração do seu banco isolado.");
+}
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
@@ -12,4 +23,3 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     detectSessionInUrl: false,
   },
 });
-

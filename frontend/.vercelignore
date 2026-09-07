@@ -1,0 +1,11 @@
+.git
+.vercel
+.env*
+.codex
+.agents
+.backups
+node_modules
+dist
+supabase
+scripts
+docs

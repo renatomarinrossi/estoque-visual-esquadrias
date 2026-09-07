@@ -2,7 +2,7 @@ import { Fragment, useCallback, useEffect, useState } from "react";
 
 import type { Venda } from "../../types/Venda";
 import type { VendaParcela } from "../../types/VendaParcela";
-import { buscarProximaParcela, buscarTotaisRecebidosVendas } from "../../services/vendaParcelaSupabase";
+import { buscarResumoVendas } from "../../services/vendaParcelaSupabase";
 import VendaDetalhes from "./VendaDetalhes";
 
 type Props = {
@@ -61,12 +61,9 @@ export default function VendaTable({
 
     setCarregandoResumo(true);
     try {
-      const [proximas, totais] = await Promise.all([
-        Promise.all(vendasComId.map(async (venda) => [venda.id, await buscarProximaParcela(venda.id)] as const)),
-        buscarTotaisRecebidosVendas(vendasComId.map((venda) => venda.id)),
-      ]);
-      setProximasParcelas(Object.fromEntries(proximas));
-      setTotaisRecebidos(totais);
+      const resumo=await buscarResumoVendas(vendasComId.map(v=>v.id));
+      setProximasParcelas(Object.fromEntries(resumo.map(r=>[r.venda_id,r.proxima])));
+      setTotaisRecebidos(Object.fromEntries(resumo.map(r=>[r.venda_id,Number(r.total_recebido)])));
     } catch (erro) {
       console.error(erro);
       setProximasParcelas({});

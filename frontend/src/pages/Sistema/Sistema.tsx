@@ -9,13 +9,13 @@ import useUsuario from "../../hooks/useUsuario";
 import { fazerBackupCompleto } from "../../services/backup/backupService";
 import { lerArquivoBackup } from "../../services/backup/restaurarBackup";
 import { restaurarBackupCompleto } from "../../services/backup/restaurarBackupCompleto";
-import { verificarBanco } from "../../services/sistemaSupabase";
+import { buscarUltimoBackup, verificarBanco } from "../../services/sistemaSupabase";
 
 export default function Sistema() {
   const usuario = useUsuario();
   const eDesenvolvedor = usuario?.perfil === "DESENVOLVEDOR";
   const [ultimoBackup, setUltimoBackup] = useState(
-    () => localStorage.getItem("ultimoBackup") || "Nunca realizado"
+    "Consultando histórico..."
   );
   const [statusBanco, setStatusBanco] = useState<"ONLINE" | "OFFLINE">(
     "OFFLINE"
@@ -28,7 +28,8 @@ export default function Sistema() {
     }
 
     void carregarStatus();
-  }, []);
+    if(eDesenvolvedor)void buscarUltimoBackup().then(setUltimoBackup).catch(()=>setUltimoBackup("Histórico indisponível"));
+  }, [eDesenvolvedor]);
 
   async function fazerBackup() {
     setProcessando(true);
@@ -36,7 +37,7 @@ export default function Sistema() {
     try {
       const dataHora = await fazerBackupCompleto();
       setUltimoBackup(dataHora);
-      alert("Backup completo gerado e baixado com sucesso.");
+      alert("Backup operacional gerado. Confira o arquivo na pasta de downloads.");
     } catch (erro) {
       console.error(erro);
       alert("Não foi possível gerar o backup completo.");
@@ -59,7 +60,7 @@ export default function Sistema() {
       ].join("\n");
 
       const confirmar = window.confirm(
-        `ATENÇÃO: a restauração substituirá todos os dados atuais do sistema.\n\n${resumo}\n\nDeseja continuar?`
+        `${backup.backupVersion===6?"ATENÇÃO: a restauração substituirá os dados operacionais atuais.":"IMPORTAÇÃO ADITIVA: registros com IDs já existentes serão mantidos; somente IDs novos serão importados. Seções ausentes serão preservadas."}\n\n${resumo}\n\nDeseja continuar?`
       );
 
       if (!confirmar) return;

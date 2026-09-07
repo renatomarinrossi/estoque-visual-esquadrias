@@ -15,4 +15,3 @@ export type ContaPagar = {
   observacoes: string;
   created_at?: string;
 };
-

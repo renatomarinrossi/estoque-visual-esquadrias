@@ -38,7 +38,7 @@ function ItemNavegacao({ item }: { item: ItemMenu }) {
       }
     >
       <Icon size={18} strokeWidth={1.9} className="shrink-0" />
-      <span className="whitespace-nowrap">{item.nome}</span>
+      <span className={item.rota === "/departamento-pessoal" ? "whitespace-nowrap text-[13px]" : "whitespace-nowrap"}>{item.nome}</span>
     </NavLink>
   );
 }
@@ -118,6 +118,12 @@ export default function Sidebar() {
         <TituloGrupo titulo="Financeiro" />
         {menuFinanceiro.map((item) => <ItemNavegacao key={item.rota} item={item} />)}
 
+        {podeVerFinanceiro && <>
+          <div className="mx-4 mt-3 border-t border-blue-700/80" />
+          <TituloGrupo titulo="Pessoal" />
+          <ItemNavegacao item={{ nome: "Departamento Pessoal", rota: "/departamento-pessoal", icone: Users }} />
+        </>}
+
         <div className="mx-4 mt-3 border-t border-blue-700/80" />
         <TituloGrupo titulo="Sistema" />
         {menuSistema.map((item) => <ItemNavegacao key={item.rota} item={item} />)}
@@ -133,8 +139,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-
-
-
-
-

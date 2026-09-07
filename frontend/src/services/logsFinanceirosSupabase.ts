@@ -16,12 +16,12 @@ function fimDoDia(data: string) {
 
 export async function buscarLogsFinanceiros(
   dataInicial: string,
-  dataFinal: string
+  dataFinal: string, pagina = 0, modulo = ""
 ): Promise<LogFinanceiro[]> {
   let consulta = supabase
     .from("logs_financeiros")
     .select("id, created_at, usuario_id, modulo, acao, entidade, entidade_id, descricao, detalhes, usuarios(nome, login)")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false }).order("id",{ascending:false});
 
   if (dataInicial) {
     consulta = consulta.gte("created_at", inicioDoDia(dataInicial));
@@ -31,7 +31,8 @@ export async function buscarLogsFinanceiros(
     consulta = consulta.lte("created_at", fimDoDia(dataFinal));
   }
 
-  const { data, error } = await consulta.limit(500);
+  if(modulo)consulta=consulta.eq("modulo",modulo);
+  const { data, error } = await consulta.range(pagina*100,pagina*100+99);
 
   if (error) throw error;
 

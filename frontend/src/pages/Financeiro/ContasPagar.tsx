@@ -95,9 +95,9 @@ export default function ContasPagar() {
   }
 
   async function removerConta(item: ContaPagar) {
-    if (!item.id || !window.confirm(`Excluir a conta de ${item.favorecido}?`)) return;
+    if (!item.id || !window.confirm(`Cancelar a conta de ${item.favorecido}?`)) return;
     try { await excluirContaPagar(item.id); await carregarContas(); }
-    catch (erro) { console.error(erro); alert("Não foi possível excluir a conta a pagar."); }
+    catch (erro) { console.error(erro); alert("Não foi possível cancelar a conta a pagar."); }
   }
 
   async function confirmarPagamento(dataPagamento: string) {
@@ -145,7 +145,7 @@ export default function ContasPagar() {
           <button type="button" onClick={() => { setConta(criarContaVazia()); setMostrarFormulario(true); }} className="rounded-lg bg-blue-700 px-5 py-3 text-white hover:bg-blue-800">Nova conta</button>
         </div>
       </div>
-    {mostrarFormulario && <form onSubmit={salvarConta} className="mb-6 rounded-xl bg-white p-6 shadow-md"><h2 className="mb-6 text-2xl font-bold text-blue-900">{conta.id ? "Editar conta a pagar" : "Nova conta a pagar"}</h2><div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4"><div><label className="mb-2 block font-semibold">Nome</label><input value={conta.favorecido} onChange={(event) => setConta((atual) => ({ ...atual, favorecido: event.target.value }))} className="w-full rounded-lg border p-3" /></div><div><label className="mb-2 block font-semibold">Data de vencimento</label><input type="date" value={conta.data_vencimento} onChange={(event) => setConta((atual) => ({ ...atual, data_vencimento: event.target.value, data_lancamento: event.target.value }))} className="w-full rounded-lg border p-3" /></div><div><label className="mb-2 block font-semibold">Valor</label><input type="number" min="0" step="0.01" value={conta.valor || ""} onChange={(event) => setConta((atual) => ({ ...atual, valor: Number(event.target.value) }))} className="w-full rounded-lg border p-3" /></div><div><label className="mb-2 block font-semibold">Forma de pagamento</label><select value={conta.forma_pagamento} onChange={(event) => setConta((atual) => ({ ...atual, forma_pagamento: event.target.value as FormaPagamentoContaPagar }))} className="w-full rounded-lg border p-3">{formasPagamento.map((forma) => <option key={forma} value={forma}>{rotulo(forma)}</option>)}</select></div></div><div className="mt-6 flex justify-end gap-3"><button type="button" onClick={fecharFormulario} className="rounded-lg bg-gray-500 px-5 py-2 text-white hover:bg-gray-600">Cancelar</button><button type="submit" className="rounded-lg bg-blue-700 px-5 py-2 text-white hover:bg-blue-800">Salvar</button></div></form>}
+    {mostrarFormulario && <form onSubmit={salvarConta} className="mb-6 rounded-xl bg-white p-6 shadow-md"><h2 className="mb-6 text-2xl font-bold text-blue-900">{conta.id ? "Editar conta a pagar" : "Nova conta a pagar"}</h2><div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4"><div><label className="mb-2 block font-semibold">Nome</label><input value={conta.favorecido} onChange={(event) => setConta((atual) => ({ ...atual, favorecido: event.target.value }))} className="w-full rounded-lg border p-3" /></div><div><label className="mb-2 block font-semibold">Descrição</label><input required value={conta.descricao} onChange={e=>setConta(c=>({...c,descricao:e.target.value}))} className="w-full rounded-lg border p-3"/></div><div><label className="mb-2 block font-semibold">Data de vencimento</label><input type="date" value={conta.data_vencimento} onChange={(event) => setConta((atual) => ({ ...atual, data_vencimento: event.target.value, data_lancamento: event.target.value }))} className="w-full rounded-lg border p-3" /></div><div><label className="mb-2 block font-semibold">Valor</label><input type="number" min="0" step="0.01" value={conta.valor || ""} onChange={(event) => setConta((atual) => ({ ...atual, valor: Number(event.target.value) }))} className="w-full rounded-lg border p-3" /></div><div><label className="mb-2 block font-semibold">Forma de pagamento</label><select value={conta.forma_pagamento} onChange={(event) => setConta((atual) => ({ ...atual, forma_pagamento: event.target.value as FormaPagamentoContaPagar }))} className="w-full rounded-lg border p-3">{formasPagamento.map((forma) => <option key={forma} value={forma}>{rotulo(forma)}</option>)}</select></div></div><div className="mt-6 flex justify-end gap-3"><button type="button" onClick={fecharFormulario} className="rounded-lg bg-gray-500 px-5 py-2 text-white hover:bg-gray-600">Cancelar</button><button type="submit" className="rounded-lg bg-blue-700 px-5 py-2 text-white hover:bg-blue-800">Salvar</button></div></form>}
       <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="rounded-xl border border-slate-200 border-l-4 border-l-blue-600 bg-white px-5 py-4 shadow-sm">
           <div className="text-sm text-gray-500">Total pendente</div>
@@ -202,8 +202,8 @@ export default function ContasPagar() {
                   <td>
                     <div className="flex justify-center gap-2">
                       {item.status === "EM_ABERTO" && <button type="button" onClick={() => setContaParaPagamento(item)} className="rounded-md border border-green-200 bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 transition hover:bg-green-100">Confirm. pagam.</button>}
-                      <button type="button" onClick={() => { setConta({ ...item }); setMostrarFormulario(true); }} className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 transition hover:bg-amber-100">Editar</button>
-                      <button type="button" onClick={() => void removerConta(item)} className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100">Excluir</button>
+                      <button disabled={item.status!=="EM_ABERTO"} type="button" onClick={() => { setConta({ ...item }); setMostrarFormulario(true); }} className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 transition hover:bg-amber-100">Editar</button>
+                      <button disabled={item.status!=="EM_ABERTO"} type="button" onClick={() => void removerConta(item)} className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100">Cancelar conta</button>
                     </div>
                   </td>
                 </tr>
@@ -216,6 +216,3 @@ export default function ContasPagar() {
     </>
   );
 }
-
-
-

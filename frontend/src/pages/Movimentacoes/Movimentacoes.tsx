@@ -1,3 +1,4 @@
+import Paginacao from "../../components/Paginacao";
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -27,6 +28,7 @@ function criarFiltrosIniciais(): FiltrosMovimentacao {
 }
 
 export default function Movimentacoes() {
+  const [aplicados,setAplicados]=useState<FiltrosMovimentacao>(criarFiltrosIniciais);
   const [movimentacoes, setMovimentacoes] = useState<MovimentacaoEstoque[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [filtros, setFiltros] = useState<FiltrosMovimentacao>(criarFiltrosIniciais);
@@ -34,7 +36,7 @@ export default function Movimentacoes() {
   const carregar = useCallback(async (filtrosDaConsulta: FiltrosMovimentacao) => {
     setCarregando(true);
     try {
-      setMovimentacoes(await buscarMovimentacoesEstoque(filtrosDaConsulta));
+      setMovimentacoes(await buscarMovimentacoesEstoque(filtrosDaConsulta));setAplicados(filtrosDaConsulta);
     } catch (erro) {
       console.error(erro);
       alert("Não foi possível carregar as movimentações.");
@@ -123,6 +125,7 @@ export default function Movimentacoes() {
           </tbody>
         </table>
       </div>
+      <Paginacao pagina={aplicados.pagina??0} temMais={movimentacoes.length===100} ocupado={carregando} mudar={p=>void carregar({...aplicados,pagina:p})}/>
     </>
   );
 }

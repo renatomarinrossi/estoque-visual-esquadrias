@@ -12,6 +12,7 @@ import Login from "./pages/Login/Login";
 const Compras = lazy(() => import("./pages/Compras/Compras"));
 const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
 const ContasPagar = lazy(() => import("./pages/Financeiro/ContasPagar"));
+const DepartamentoPessoal = lazy(() => import("./pages/DepartamentoPessoal/DepartamentoPessoal"));
 const ContasReceber = lazy(() => import("./pages/Financeiro/ContasReceber"));
 const DashboardFinanceiro = lazy(
   () => import("./pages/Financeiro/DashboardFinanceiro")
@@ -116,6 +117,7 @@ function RotasDoSistema() {
             />
             <Route path="contas-receber" element={<ContasReceber />} />
             <Route path="contas-pagar" element={<ContasPagar />} />
+            <Route path="departamento-pessoal" element={<ProtectedRoute perfis={["DESENVOLVEDOR", "GERENCIAL"]}><DepartamentoPessoal /></ProtectedRoute>} />
             <Route
               path="dashboard-financeiro"
               element={
@@ -150,4 +152,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-

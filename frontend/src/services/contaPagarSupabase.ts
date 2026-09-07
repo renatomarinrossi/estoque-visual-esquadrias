@@ -7,33 +7,17 @@ export async function buscarContasPagar(): Promise<ContaPagar[]> {
   return (data ?? []) as ContaPagar[];
 }
 
+
 export async function inserirContaPagar(conta: ContaPagar): Promise<void> {
-  const { error } = await supabase.from("contas_pagar").insert({
-    data_lancamento: conta.data_lancamento, favorecido: conta.favorecido, descricao: conta.descricao,
-    valor: conta.valor, forma_pagamento: conta.forma_pagamento, data_vencimento: conta.data_vencimento,
-    data_pagamento: null, status: "EM_ABERTO", observacoes: conta.observacoes,
-  });
-  if (error) throw error;
+ const {error}=await supabase.rpc("salvar_conta_pagar",{p_conta:conta,p_id:null}); if(error)throw error;
 }
-
 export async function atualizarContaPagar(conta: ContaPagar): Promise<void> {
-  if (!conta.id) throw new Error("Conta a pagar sem ID.");
-  const { error } = await supabase.from("contas_pagar").update({
-    data_lancamento: conta.data_lancamento, favorecido: conta.favorecido, descricao: conta.descricao,
-    valor: conta.valor, forma_pagamento: conta.forma_pagamento, data_vencimento: conta.data_vencimento,
-    data_pagamento: conta.data_pagamento ?? null, status: conta.status, observacoes: conta.observacoes,
-  }).eq("id", conta.id);
-  if (error) throw error;
+ if(!conta.id)throw new Error("Conta sem ID.");
+ const {error}=await supabase.rpc("salvar_conta_pagar",{p_conta:conta,p_id:conta.id}); if(error)throw error;
 }
-
-export async function confirmarPagamentoContaPagar(id: number, dataPagamento: string): Promise<void> {
-  if (!dataPagamento) throw new Error("Informe a data do pagamento.");
-  const { error } = await supabase.from("contas_pagar").update({ status: "PAGO", data_pagamento: dataPagamento }).eq("id", id);
-  if (error) throw error;
+export async function confirmarPagamentoContaPagar(id:number,dataPagamento:string):Promise<void>{
+ const {error}=await supabase.rpc("operar_conta_pagar",{p_id:id,p_acao:"PAGAR",p_data:dataPagamento});if(error)throw error;
 }
-
-export async function excluirContaPagar(id: number): Promise<void> {
-  const { error } = await supabase.from("contas_pagar").delete().eq("id", id);
-  if (error) throw error;
+export async function excluirContaPagar(id:number):Promise<void>{
+ const {error}=await supabase.rpc("operar_conta_pagar",{p_id:id,p_acao:"CANCELAR"});if(error)throw error;
 }
-

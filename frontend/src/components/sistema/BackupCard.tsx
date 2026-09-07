@@ -14,6 +14,7 @@ export default function BackupCard({
         Backup
       </h2>
 
+      <p className="mb-4 text-sm text-gray-600">Backup dos dados operacionais, incluindo históricos. Não inclui senhas, sessões nem contas do Supabase Auth. As identidades exigem recuperação separada. A data abaixo registra a geração no banco; confira o download.</p>
       <button
         onClick={onBackup}
         className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg"

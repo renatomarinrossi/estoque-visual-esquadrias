@@ -1,4 +1,12 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import Paginacao from "../../components/Paginacao";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import type { Venda } from "../../types/Venda";
 import type { VendaParcela } from "../../types/VendaParcela";
@@ -34,23 +42,36 @@ type Props = {
 };
 
 export default function Vendas({ obrasFinalizadas = false }: Props) {
+  const [pagina, setPagina] = useState(0);
+  const [carregando, setCarregando] = useState(false);
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [venda, setVenda] = useState<Venda>(criarVendaVazia);
   const [busca, setBusca] = useState("");
   const [termoBusca, setTermoBusca] = useState("");
+  const sequencia = useRef(0);
 
   const carregarDados = useCallback(async () => {
+    const pedido = ++sequencia.current;
+    setCarregando(true);
     try {
-      setVendas(await buscarVendas(obrasFinalizadas));
+      const dados = await buscarVendas(obrasFinalizadas, pagina, termoBusca);
+      if (pedido === sequencia.current) setVendas(dados);
     } catch (erro) {
+      if (pedido !== sequencia.current) return;
       console.error(erro);
       alert("Não foi possível carregar as vendas.");
+    } finally {
+      if (pedido === sequencia.current) setCarregando(false);
     }
-  }, [obrasFinalizadas]);
+  }, [obrasFinalizadas, pagina, termoBusca]);
 
   useEffect(() => {
+    const controle = sequencia;
     void carregarDados();
+    return () => {
+      controle.current++;
+    };
   }, [carregarDados]);
 
   const vendasFiltradas = useMemo(() => {
@@ -59,17 +80,19 @@ export default function Vendas({ obrasFinalizadas = false }: Props) {
     if (!termo) return vendas;
 
     return vendas.filter((item) =>
-      item.cliente.toLocaleLowerCase("pt-BR").includes(termo)
+      item.cliente.toLocaleLowerCase("pt-BR").includes(termo),
     );
   }, [termoBusca, vendas]);
 
   function buscar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setPagina(0);
     setTermoBusca(busca);
   }
 
   function limparBusca() {
     setBusca("");
+    setPagina(0);
     setTermoBusca("");
   }
 
@@ -117,7 +140,11 @@ export default function Vendas({ obrasFinalizadas = false }: Props) {
 
   async function restaurarVendaArquivada(item: Venda) {
     if (!item.id) return;
-    if (!window.confirm(`Restaurar a obra de ${item.cliente} para a listagem de vendas?`)) {
+    if (
+      !window.confirm(
+        `Restaurar a obra de ${item.cliente} para a listagem de vendas?`,
+      )
+    ) {
       return;
     }
 
@@ -208,10 +235,12 @@ export default function Vendas({ obrasFinalizadas = false }: Props) {
         onExcluir={obrasFinalizadas ? undefined : removerVenda}
         onRestaurar={obrasFinalizadas ? restaurarVendaArquivada : undefined}
       />
+      <Paginacao
+        pagina={pagina}
+        temMais={vendas.length === 50}
+        ocupado={carregando}
+        mudar={setPagina}
+      />
     </>
   );
 }
-
-
-
-

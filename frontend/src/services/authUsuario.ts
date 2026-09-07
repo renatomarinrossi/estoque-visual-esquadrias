@@ -8,7 +8,12 @@ export async function buscarUsuarioAutenticado(): Promise<UsuarioLogado | null> 
     error: erroAuth,
   } = await supabase.auth.getUser();
 
-  if (erroAuth || !user) return null;
+  if (erroAuth) {
+    if (erroAuth.name === "AuthSessionMissingError") return null;
+    if (["session_not_found", "refresh_token_not_found", "refresh_token_already_used", "bad_jwt"].includes(erroAuth.code ?? "")) return null;
+    throw erroAuth;
+  }
+  if (!user) return null;
 
   const { data, error } = await supabase
     .from("usuarios")
@@ -51,4 +56,3 @@ export async function sairDoSistema() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 }
-

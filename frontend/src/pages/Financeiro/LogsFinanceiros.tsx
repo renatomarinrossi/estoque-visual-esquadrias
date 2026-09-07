@@ -1,3 +1,5 @@
+import Paginacao from "../../components/Paginacao";
+import ArquivarLogs from "../../components/Financeiro/ArquivarLogs";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { ModuloLogFinanceiro } from "../../types/LogFinanceiro";
@@ -54,13 +56,14 @@ export default function LogsFinanceiros() {
   const [modulo, setModulo] = useState<"" | ModuloLogFinanceiro>("");
   const [moduloAplicado, setModuloAplicado] = useState<"" | ModuloLogFinanceiro>("");
   const [logs, setLogs] = useState<Awaited<ReturnType<typeof buscarLogsFinanceiros>>>([]);
+  const [pagina,setPagina]=useState(0);
   const [carregando, setCarregando] = useState(true);
 
-  const carregarLogs = useCallback(async (filtros: Periodo) => {
-    setCarregando(true);
+  const carregarLogs = useCallback(async (filtros: Periodo, pag=0, mod: ""|ModuloLogFinanceiro="") => {
+    setPagina(pag);setCarregando(true);
 
     try {
-      setLogs(await buscarLogsFinanceiros(filtros.dataInicial, filtros.dataFinal));
+      setLogs(await buscarLogsFinanceiros(filtros.dataInicial, filtros.dataFinal,pag,mod));
     } catch (erro) {
       console.error(erro);
       alert("Não foi possível carregar os logs financeiros.");
@@ -90,7 +93,7 @@ export default function LogsFinanceiros() {
     const novosFiltros = { dataInicial, dataFinal };
     setFiltrosAplicados(novosFiltros);
     setModuloAplicado(modulo);
-    void carregarLogs(novosFiltros);
+    void carregarLogs(novosFiltros,0,modulo);
   }
 
   function limparFiltros() {
@@ -114,13 +117,14 @@ export default function LogsFinanceiros() {
         </div>
         <button
           type="button"
-          onClick={() => void carregarLogs(filtrosAplicados)}
+          onClick={() => void carregarLogs(filtrosAplicados,pagina,moduloAplicado)}
           className="rounded-lg bg-blue-700 px-5 py-3 text-white hover:bg-blue-800"
         >
           Atualizar
         </button>
       </div>
 
+      <ArquivarLogs/>
       <div className="mb-6 rounded-xl bg-white p-6 shadow-md">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div>
@@ -214,6 +218,7 @@ export default function LogsFinanceiros() {
           </tbody>
         </table>
       </div>
+      <Paginacao pagina={pagina} temMais={logs.length===100} ocupado={carregando} mudar={p=>void carregarLogs(filtrosAplicados,p,moduloAplicado)}/>
     </>
   );
 }
