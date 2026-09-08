@@ -3,7 +3,6 @@ import {
   type FormEvent,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -73,16 +72,6 @@ export default function Vendas({ obrasFinalizadas = false }: Props) {
       controle.current++;
     };
   }, [carregarDados]);
-
-  const vendasFiltradas = useMemo(() => {
-    const termo = termoBusca.trim().toLocaleLowerCase("pt-BR");
-
-    if (!termo) return vendas;
-
-    return vendas.filter((item) =>
-      item.cliente.toLocaleLowerCase("pt-BR").includes(termo),
-    );
-  }, [termoBusca, vendas]);
 
   function buscar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -196,7 +185,7 @@ export default function Vendas({ obrasFinalizadas = false }: Props) {
             id="buscar-venda"
             value={busca}
             onChange={(event) => setBusca(event.target.value)}
-            placeholder="Buscar pelo nome do cliente"
+            placeholder="Buscar pelo nome do cliente ou cidade"
             className="w-full rounded-lg border p-3"
           />
         </div>
@@ -227,7 +216,7 @@ export default function Vendas({ obrasFinalizadas = false }: Props) {
       )}
 
       <VendaTable
-        vendas={vendasFiltradas}
+        vendas={vendas}
         onAtualizar={carregarDados}
         obrasFinalizadas={obrasFinalizadas}
         onArquivar={obrasFinalizadas ? undefined : arquivarVendaConcluida}

@@ -1,14 +1,17 @@
 import { supabase } from "./supabase";
+import { filtroBuscaVenda } from "./filtroBuscaVenda";
 
 import type { Venda } from "../types/Venda";
 import type { VendaParcela } from "../types/VendaParcela";
 
 export async function buscarVendas(arquivadas = false, pagina = 0, busca = ""): Promise<Venda[]> {
-  const { data, error } = await supabase
+  let consulta = supabase
     .from("vendas")
     .select("id,data_venda,cliente,valor_total,responsavel,endereco,cidade,status,observacoes,arquivada,arquivada_em,created_at")
-    .eq("arquivada", arquivadas)
-    .ilike("cliente", "%"+busca.trim().replace(/[%_]/g, c => "\\"+c)+"%")
+    .eq("arquivada", arquivadas);
+  const filtro = filtroBuscaVenda(busca);
+  if (filtro) consulta = consulta.or(filtro);
+  const { data, error } = await consulta
     .order("data_venda", { ascending: false }).order("id", {ascending:false}).range(pagina*50,pagina*50+49);
 
   if (error) throw error;
@@ -100,5 +103,4 @@ export async function restaurarVenda(id: number): Promise<void> {
 
   if (error) throw error;
 }
-
 
