@@ -35,3 +35,7 @@ Referências: [22 de maio municipal](https://fernandopolis.sp.gov.br/o-que-abre-
 Paginação integral do DP e das demais telas financeiras/resumos e melhorias adicionais de acabamento ficam para depois. O item 31 está atendido nas três listagens citadas, não em todas as consultas. Movimentos antigos de descrição livre exigem classificação humana; não é seguro inferir dias/dinheiro pelo texto.
 
 Antes de publicar: backup remoto, migrations e Edge Functions no banco demo, variáveis de build e smoke test no domínio. A autorização não abrange mudanças em produção. Veja [BACKUP.md](BACKUP.md) para recuperação e limitações dos formatos antigos.
+
+## Decisão permanente do usuário — item 17
+
+O item 17 da auditoria original (tornar o código do produto único no banco) foi rejeitado expressamente pelo usuário. Não deve ser implementado nem tratado como pendência. Códigos de produtos repetidos devem continuar permitidos; não criar restrição ou índice de unicidade nem bloquear repetições na interface como execução deste item. Esta decisão só pode ser revista por nova instrução explícita do usuário.

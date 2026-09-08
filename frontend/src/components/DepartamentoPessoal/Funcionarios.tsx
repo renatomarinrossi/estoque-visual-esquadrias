@@ -5,10 +5,14 @@ export default function Funcionarios({
   listaFuncionarios,
   pagamentos,
   setFormFuncionario,
+  excluir,
+  ocupado,
 }: {
   listaFuncionarios: Funcionario[];
   pagamentos: PagamentoDP[];
   setFormFuncionario: (f: Funcionario) => void;
+  excluir: (f: Funcionario) => void;
+  ocupado: boolean;
 }) {
   return (
     <Tabela
@@ -52,10 +56,18 @@ export default function Funcionarios({
             <td>{dataBR(f.data_inativacao)}</td>
             <td>
               <button
+                disabled={ocupado}
                 className={secundario}
                 onClick={() => setFormFuncionario(f)}
               >
                 Editar
+              </button>
+              <button
+                disabled={ocupado}
+                className={`${secundario} ml-2 text-red-700`}
+                onClick={() => excluir(f)}
+              >
+                Excluir
               </button>
             </td>
           </tr>

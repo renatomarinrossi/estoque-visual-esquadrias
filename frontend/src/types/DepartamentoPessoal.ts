@@ -31,6 +31,7 @@ export type PagamentoDP = {
   status: Exclude<StatusPagamentoDP, "PARCIAL">;
 };
 export type PeriodoFerias = {
+  substituido_em?: string | null;
   id: number;
   funcionario_id: number;
   periodo_aquisitivo_inicio: string;

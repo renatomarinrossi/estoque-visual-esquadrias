@@ -1,6 +1,7 @@
 import { PGlite } from '@electric-sql/pglite';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import { testarCorrecaoDP } from './testar-correcao-dp.mjs';
 process.on('uncaughtException',e=>{console.error('FALHA:',e.message,e.where??'',e.detail??'');process.exit(1);});
 const db=new PGlite();
 await db.exec(`create role authenticated; create role anon; create schema auth;
@@ -103,4 +104,5 @@ await assert.rejects(q(`select gerar_backup_operacional('teste')`),/desenvolvedo
 await assert.rejects(q(`select dp_lancar_ajuste($1,10,'indevido','11111111-1111-4111-8111-111111111116')`,[pg]),/Acesso/);
 await assert.rejects(q(`update contas_pagar set valor=1 where id=$1`,[cid]),/permission/);
 console.log('PASS: feriados, proporcional /30, idempotência, descontos, inativação, férias sem duplo desconto, logs, backup v6, importação v5, rollback e permissões.');
+await testarCorrecaoDP(db);
 await db.close();

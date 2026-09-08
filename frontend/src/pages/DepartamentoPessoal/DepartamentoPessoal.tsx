@@ -4,6 +4,7 @@ import ConfiguracaoDP from "../../components/DepartamentoPessoal/ConfiguracaoDP"
 import ArquivoFerias from "../../components/DepartamentoPessoal/ArquivoFerias";
 import Pagamentos from "../../components/DepartamentoPessoal/Pagamentos";
 import Funcionarios from "../../components/DepartamentoPessoal/Funcionarios";
+import ExcluirFuncionario from "../../components/DepartamentoPessoal/ExcluirFuncionario";
 import VisaoGeral from "../../components/DepartamentoPessoal/VisaoGeral";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -74,6 +75,7 @@ export default function DepartamentoPessoal() {
     Funcionario | "novo" | null
   >(null);
   const [periodoAberto, setPeriodoAberto] = useState<number | null>(null);
+  const [excluirItem, setExcluirItem] = useState<Funcionario | null>(null);
   const [pagarItem, setPagarItem] = useState<PagamentoDP | null>(null);
   const [extras, setExtras] = useState<Record<number, number>>({});
   const sequencia = useRef(0);
@@ -151,7 +153,7 @@ export default function DepartamentoPessoal() {
         ),
     [periodos, funcionarios, movimentos],
   );
-  const periodosAtivos = opcoesFerias.filter((o) => o.funcionario.ativo);
+  const periodosAtivos = opcoesFerias.filter((o) => o.funcionario.ativo && !o.periodo.substituido_em);
   const vencidas = periodosAtivos.filter(
     (o) => o.diasDisponiveis > 0 && o.periodo.data_direito <= dataISO(),
   );
@@ -429,6 +431,8 @@ export default function DepartamentoPessoal() {
               listaFuncionarios={listaFuncionarios}
               pagamentos={pagamentos}
               setFormFuncionario={setFormFuncionario}
+              excluir={setExcluirItem}
+              ocupado={bloqueado}
             />
           )}
           {aba === "Pagamentos" && (
@@ -458,6 +462,14 @@ export default function DepartamentoPessoal() {
             </>
           )}
         </>
+      )}
+      {excluirItem && (
+        <ExcluirFuncionario
+          funcionario={excluirItem}
+          pagamentos={pagamentos}
+          fechar={() => setExcluirItem(null)}
+          salvo={carregar}
+        />
       )}
       {formFuncionario && (
         <FuncionarioForm

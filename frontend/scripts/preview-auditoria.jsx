@@ -1,6 +1,9 @@
 // Fixture de interface: todas as consultas e gravações são simuladas localmente.
 // Não é um ponto de entrada do build de produção.
 import React from 'react';
+import {AuthContext} from '../src/contexts/AuthContext';
+const parametros=new URLSearchParams(location.search);
+const usuarioTeste={id:1,nome:'Usuário de teste',login:'teste',perfil:parametros.get('perfil')==='gerencial'?'GERENCIAL':'DESENVOLVEDOR',ativo:true};
 import {createRoot} from 'react-dom/client';
 import '../src/index.css';
 import {supabase} from '../src/services/supabase';
@@ -11,7 +14,7 @@ const funcionario={id:1,nome:'Funcionário de teste',funcao:'Montador',salario:3
 const tabelas={
  dp_funcionarios:[funcionario],
  dp_pagamentos:[{id:1,funcionario_id:1,competencia:comp,tipo:'SALARIO',nome_funcionario:funcionario.nome,funcao_funcionario:funcionario.funcao,salario_base:3000,valor:1800,valor_extra:-100,observacoes_extra:'Desconto anterior',forma_pagamento:'PIX',data_vencimento:hoje,data_pagamento:null,status:'EM_ABERTO'}],
- dp_periodos_ferias:[{id:1,funcionario_id:1,periodo_aquisitivo_inicio:'2024-01-01',periodo_aquisitivo_fim:'2024-12-31',data_direito:'2025-01-01',limite_concessao:'2025-12-31',dias_direito:30}],
+ dp_periodos_ferias:[{id:1,funcionario_id:1,periodo_aquisitivo_inicio:'2024-01-01',periodo_aquisitivo_fim:'2024-12-31',data_direito:'2025-01-01',limite_concessao:'2025-12-31',dias_direito:30,substituido_em:parametros.has('substituido')?hoje:null}],
  dp_ferias_movimentacoes:[{id:1,periodo_id:1,funcionario_id:1,descricao:'Gozo demonstrativo',tipo_movimentacao:'GOZO',quantidade_dias:10,valor:0,data_movimentacao:hoje,observacoes:'',cancelado_em:null},{id:2,periodo_id:1,funcionario_id:1,descricao:'Pagamento dos mesmos 10 dias',tipo_movimentacao:'PAGAMENTO_FERIAS',quantidade_dias:0,valor:1000,data_movimentacao:hoje,observacoes:'',cancelado_em:null}],
  dp_feriados:[{id:1,data:'2026-05-22',descricao:'Aniversário de Fernandópolis',abrangencia:'MUNICIPAL'}],
  dp_auditoria:[],dp_ferias:[],dp_pagamento_lancamentos:[],
@@ -23,6 +26,7 @@ supabase.from=(t)=>{
 };
 supabase.rpc=async(nome,args)=>{
  document.getElementById('resultado').textContent+='\n'+JSON.stringify({rpc:nome,args:args??{}},null,2);
+ if(nome==='dp_excluir_funcionario'){for(const tabela of ['dp_funcionarios','dp_pagamentos','dp_periodos_ferias','dp_ferias_movimentacoes'])tabelas[tabela]=[];}
  return {data:nome==='dp_gerar_folha'?0:null,error:null};
 };
-createRoot(document.getElementById('root')).render(<main className="min-h-screen bg-slate-50 p-6"><p className="mb-4 rounded bg-amber-100 p-3">Teste local com dados fictícios. Nenhuma operação chega ao Supabase.</p><DepartamentoPessoal/><pre id="resultado" className="mt-8 overflow-auto rounded bg-slate-200 p-4"/></main>);
+createRoot(document.getElementById('root')).render(<main className="min-h-screen bg-slate-50 p-6"><p className="mb-4 rounded bg-amber-100 p-3">Teste local com dados fictícios. Nenhuma operação chega ao Supabase.</p><AuthContext.Provider value={{usuario:usuarioTeste,carregando:false}}><DepartamentoPessoal/></AuthContext.Provider><pre id="resultado" className="mt-8 overflow-auto rounded bg-slate-200 p-4"/></main>);

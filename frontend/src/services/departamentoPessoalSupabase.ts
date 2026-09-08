@@ -96,6 +96,13 @@ export async function gerarFolha(competencia: string) {
   if (error) throw error;
   return Number(data);
 }
+export async function excluirFuncionario(id: number, nomeConfirmacao: string) {
+  const { error } = await supabase.rpc("dp_excluir_funcionario", {
+    p_id: id,
+    p_nome_confirmacao: nomeConfirmacao,
+  });
+  if (error) throw error;
+}
 export async function pagarFolha(
   id: number,
   data: string,

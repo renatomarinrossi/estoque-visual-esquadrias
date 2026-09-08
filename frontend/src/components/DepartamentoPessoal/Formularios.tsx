@@ -140,6 +140,7 @@ export function FuncionarioForm({
                 type="date"
                 className={campo}
                 defaultValue={dados.data_admissao}
+                onChange={(e) => setDados((d) => ({ ...d, data_admissao: e.target.value }))}
               />
             </Campo>
             <Campo nome="Situação">
@@ -200,6 +201,7 @@ export function FuncionarioForm({
           )}
           {funcionario &&
             (revisarPendencias ||
+              dados.data_admissao !== funcionario.data_admissao ||
               dados.ativo !== funcionario.ativo ||
               dados.data_inativacao !== funcionario.data_inativacao) && (
               <section className="space-y-3 rounded-lg bg-amber-50 p-4">

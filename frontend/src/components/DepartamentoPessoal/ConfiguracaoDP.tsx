@@ -3,6 +3,7 @@ import { supabase } from "../../services/supabase";
 import { mensagemErroDP } from "../../services/departamentoPessoalSupabase";
 import { botao, campo, dataBR, secundario } from "./utils";
 import Paginacao from "../Paginacao";
+import useUsuario from "../../hooks/useUsuario";
 
 type Feriado = {
   id: number;
@@ -21,6 +22,7 @@ type Auditoria = {
   depois: unknown;
 };
 export default function ConfiguracaoDP() {
+  const desenvolvedor = useUsuario()?.perfil === "DESENVOLVEDOR";
   const [aba, setAba] = useState<"" | "feriados" | "auditoria">("");
   const [ano, setAno] = useState(new Date().getFullYear());
   const [feriados, setFeriados] = useState<Feriado[]>([]);
@@ -32,7 +34,7 @@ export default function ConfiguracaoDP() {
   useEffect(() => {
     let ativo = true;
     async function carregar() {
-      if (!aba) return;
+      if (!aba || (aba === "auditoria" && !desenvolvedor)) return;
       setOcupado(true);
       setErro("");
       try {
@@ -66,7 +68,7 @@ export default function ConfiguracaoDP() {
     return () => {
       ativo = false;
     };
-  }, [aba, ano, pagina, revisao]);
+  }, [aba, ano, pagina, revisao, desenvolvedor]);
   async function adicionar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
@@ -120,12 +122,14 @@ export default function ConfiguracaoDP() {
         >
           Calendário de Fernandópolis/SP
         </button>
-        <button
-          className={secundario}
-          onClick={() => setAba(aba === "auditoria" ? "" : "auditoria")}
-        >
-          Auditoria do Departamento Pessoal
-        </button>
+        {desenvolvedor && (
+          <button
+            className={secundario}
+            onClick={() => setAba(aba === "auditoria" ? "" : "auditoria")}
+          >
+            Auditoria do Departamento Pessoal
+          </button>
+        )}
       </div>
       {erro && (
         <p role="alert" className="my-3 text-red-700">
@@ -203,7 +207,7 @@ export default function ConfiguracaoDP() {
           </form>
         </div>
       )}
-      {aba === "auditoria" && (
+      {aba === "auditoria" && desenvolvedor && (
         <div className="mt-4 space-y-2">
           {logs.map((l) => (
             <details key={l.id} className="rounded border p-3 text-sm">
