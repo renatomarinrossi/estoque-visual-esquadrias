@@ -83,7 +83,22 @@ export default function ProdutoForm({ onSalvar, onCancelar, produtoInicial }: Pr
             <option>UN</option><option>Barra</option><option>Kg</option><option>M²</option><option>M³</option><option>Caixa</option>
           </select>
         </div>
-        <div><label className="mb-2 block">Quantidade</label><input type="number" className="w-full rounded-lg border p-2" value={produto.quantidade} onChange={(event) => setProduto({ ...produto, quantidade: Number(event.target.value) })} /></div>
+        <div>
+          <label className="mb-2 block">Quantidade</label>
+          <input
+            type="number"
+            min="0"
+            readOnly={Boolean(produtoInicial)}
+            className={`w-full rounded-lg border p-2 ${produtoInicial ? "cursor-not-allowed bg-slate-100 text-slate-600" : ""}`}
+            value={produto.quantidade}
+            onChange={(event) => setProduto({ ...produto, quantidade: Number(event.target.value) })}
+          />
+          {produtoInicial && (
+            <p className="mt-1 text-xs text-slate-500">
+              Use Entrada ou Saída para alterar o estoque.
+            </p>
+          )}
+        </div>
         <div><label className="mb-2 block">Estoque Mínimo</label><input type="number" min="0" className="w-full rounded-lg border p-2" value={produto.estoqueMinimo} onChange={(event) => setProduto({ ...produto, estoqueMinimo: Number(event.target.value) })} /></div>
         <div><label className="mb-2 block">Preço de Compra</label><input type="number" min="0" step="0.01" className="w-full rounded-lg border p-2" value={produto.precoCompra} onChange={(event) => setProduto({ ...produto, precoCompra: Number(event.target.value) })} /></div>
         <div>

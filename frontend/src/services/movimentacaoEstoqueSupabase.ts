@@ -39,11 +39,17 @@ export async function buscarMovimentacoesEstoque(
     .order("data_movimentacao", { ascending: false }).order("id",{ascending:false});
 
   if (filtros.dataInicial) {
-    consulta = consulta.gte("data_movimentacao", `${filtros.dataInicial}T00:00:00`);
+    consulta = consulta.gte(
+      "data_movimentacao",
+      new Date(`${filtros.dataInicial}T00:00:00`).toISOString()
+    );
   }
 
   if (filtros.dataFinal) {
-    consulta = consulta.lte("data_movimentacao", `${filtros.dataFinal}T23:59:59.999`);
+    consulta = consulta.lte(
+      "data_movimentacao",
+      new Date(`${filtros.dataFinal}T23:59:59.999`).toISOString()
+    );
   }
 
   if (filtros.tipo) {

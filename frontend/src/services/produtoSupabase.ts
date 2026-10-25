@@ -56,7 +56,6 @@ export async function atualizarProduto(produto: Produto) {
       descricao: produto.descricao,
       categoria: produto.categoria,
       unidade: produto.unidade,
-      quantidade: produto.quantidade,
       estoque_minimo: produto.estoqueMinimo,
       preco_compra: produto.precoCompra,
       observacao: produto.observacao,
