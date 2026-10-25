@@ -117,7 +117,7 @@ function RotasDoSistema() {
             />
             <Route path="contas-receber" element={<ContasReceber />} />
             <Route path="contas-pagar" element={<ContasPagar />} />
-            <Route path="departamento-pessoal" element={<ProtectedRoute perfis={["DESENVOLVEDOR", "GERENCIAL"]}><DepartamentoPessoal /></ProtectedRoute>} />
+            <Route path="departamento-pessoal" element={<ProtectedRoute perfis={["DESENVOLVEDOR", "GERENCIAL", "OPERADOR"]}><DepartamentoPessoal /></ProtectedRoute>} />
             <Route
               path="dashboard-financeiro"
               element={

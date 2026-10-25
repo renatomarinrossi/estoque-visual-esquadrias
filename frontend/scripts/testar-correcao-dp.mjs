@@ -50,7 +50,18 @@ export async function testarCorrecaoDP(db) {
   assert.equal(Number(await v('select count(*) v from dp_auditoria')), 0);
   assert.equal(await v('select dp_pode_acessar() v'), true);
   await q("select set_config('app.uid','00000000-0000-0000-0000-000000000002',false)");
+  assert.equal(await v('select dp_pode_acessar() v'), true);
+  assert.equal(Number(await v('select count(*) v from dp_auditoria')), 0);
+  const opId = Number(await v('select dp_salvar_funcionario($1) v', [{ ...dados, nome: 'Cadastro do operador' }]));
+  const opPagamento = Number(await v("select min(id) v from dp_pagamentos where funcionario_id=$1 and status='EM_ABERTO'", [opId]));
+  await q("select dp_baixar_com_ajuste($1,'2026-09-01','PIX',0,'','aaaaaaaa-1111-4111-8111-111111111119')", [opPagamento]);
+  assert.equal(await v('select status v from dp_pagamentos where id=$1', [opPagamento]), 'PAGO');
+  await q("select dp_excluir_funcionario($1,'Cadastro do operador')", [opId]);
+  assert.equal(Number(await v('select count(*) v from dp_funcionarios where id=$1', [opId])), 0);
+  await db.exec("reset role; update usuarios set ativo=false where auth_user_id='00000000-0000-0000-0000-000000000002'; set role authenticated;");
+  assert.equal(await v('select dp_pode_acessar() v'), false);
   await assert.rejects(q("select dp_excluir_funcionario(1,'Teste')"), /Acesso/);
+  await db.exec("reset role; update usuarios set ativo=true where auth_user_id='00000000-0000-0000-0000-000000000002'; set role authenticated;");
   await q("select set_config('app.uid','00000000-0000-0000-0000-000000000001',false)");
   // O arquivo anterior à correção permanece restaurável no esquema novo.
   await q('select restaurar_backup_completo($1)', [antes]);

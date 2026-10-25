@@ -118,7 +118,7 @@ export default function Sidebar() {
         <TituloGrupo titulo="Financeiro" />
         {menuFinanceiro.map((item) => <ItemNavegacao key={item.rota} item={item} />)}
 
-        {podeVerFinanceiro && <>
+        {(podeVerFinanceiro || usuario?.perfil === "OPERADOR") && <>
           <div className="mx-4 mt-3 border-t border-blue-700/80" />
           <TituloGrupo titulo="Pessoal" />
           <ItemNavegacao item={{ nome: "Departamento Pessoal", rota: "/departamento-pessoal", icone: Users }} />

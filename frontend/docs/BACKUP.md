@@ -14,7 +14,7 @@ O backup gerado pela tela **Sistema** é um arquivo JSON com os dados operaciona
 - recebimentos;
 - contas a pagar;
 - funcionários, folha, ajustes, períodos e movimentos de férias, arquivo de férias antigas e feriados;
-- auditorias financeira e do DP, metadados de exportação de logs.
+- auditorias financeira e do DP, metadados de exportação e arquivamento.
 
 O arquivo preserva os identificadores e os relacionamentos necessários para restaurar esses dados pelo sistema.
 
@@ -63,9 +63,13 @@ Por isso, uma recuperação completa em um projeto Supabase novo exige também o
 
 Mantenha backup nativo do projeto/banco além do JSON; a disponibilidade depende do plano e configuração do Supabase. Para recuperar uma cópia anterior à restauração, um desenvolvedor pode exportar `backup_seguranca.conteudo` por acesso administrativo autorizado e submetê-la à mesma validação. Confira a data da cópia antes de restaurar.
 
+### Checklist das identidades (Auth)
+
+Antes de considerar uma recuperação completa, guarde separadamente uma lista administrativa dos usuários do Supabase Auth com UUID e e-mail, sem senhas ou tokens. Compare essa lista com `usuarios.auth_user_id` no JSON operacional. No destino, cada UUID referenciado precisa existir em `auth.users`; caso contrário, a restauração é recusada antes de alterar os dados. Depois da recuperação, redefina senhas pelo fluxo oficial do Supabase e teste cada perfil. Nunca coloque chave administrativa, senha ou token dentro do arquivo operacional.
+
 ## Retenção de auditoria
 
-A tela de logs permite exportar lotes antigos de até 5.000 registros, mantendo pelo menos 90 dias no banco. A confirmação de remoção exige selecionar novamente o arquivo salvo, conferir conteúdo e SHA-256. O servidor restringe a exclusão ao lote e registra o hash. Nenhum expurgo automático é ativado. Guarde esses arquivos externamente.
+As telas de Logs Financeiros e de Auditoria do Departamento Pessoal permitem exportar lotes antigos de até 5.000 registros, mantendo pelo menos 90 dias no banco. A confirmação de remoção exige selecionar novamente o arquivo salvo, conferir conteúdo e SHA-256. O servidor restringe a exclusão ao lote e registra o hash. Nenhum expurgo automático é ativado. Guarde esses arquivos externamente, pois a auditoria do DP pode conter salários e outros dados pessoais.
 
 ## Ambientes
 

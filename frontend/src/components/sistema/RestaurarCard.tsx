@@ -48,7 +48,9 @@ export default function RestaurarCard({
       </button>
 
       <p className="text-sm text-gray-500 mt-4">
-        Selecione um arquivo de backup (.json)
+        Selecione um arquivo de backup operacional (.json). Ele não recria
+        contas, senhas ou sessões do Supabase Auth. Em outro projeto, recupere
+        primeiro as identidades dos usuários com os mesmos UUIDs.
       </p>
 
     </div>

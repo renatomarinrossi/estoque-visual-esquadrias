@@ -4,6 +4,7 @@ import { mensagemErroDP } from "../../services/departamentoPessoalSupabase";
 import { botao, campo, dataBR, secundario } from "./utils";
 import Paginacao from "../Paginacao";
 import useUsuario from "../../hooks/useUsuario";
+import ArquivarAuditoriaDP from "./ArquivarAuditoriaDP";
 
 type Feriado = {
   id: number;
@@ -209,6 +210,7 @@ export default function ConfiguracaoDP() {
       )}
       {aba === "auditoria" && desenvolvedor && (
         <div className="mt-4 space-y-2">
+          <ArquivarAuditoriaDP />
           {logs.map((l) => (
             <details key={l.id} className="rounded border p-3 text-sm">
               <summary>
